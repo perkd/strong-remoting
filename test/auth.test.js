@@ -21,15 +21,15 @@ describe('support for HTTP Authentication', function() {
 
   before(function setupServer(done) {
     const app = express();
-    const basic = auth.basic({realm: 'testing'}, (u, p, cb) => {
+    const basic = auth.basic({realm: 'testing'}, function(u, p, cb) {
       cb(u === 'basicuser' && p === 'basicpass');
     });
-    const digest = auth.digest({realm: 'testing'}, (user, cb) => {
+    const digest = auth.digest({realm: 'testing'}, function(user, cb) {
       cb(user === 'digestuser' ? md5('digestuser:testing:digestpass') : null);
-    }, 'auto');
+    });
     app.use('/noAuth', remotes.handler('rest'));
-    app.use('/basicAuth', basic.check(), remotes.handler('rest'));
-    app.use('/digestAuth', digest.check(), remotes.handler('rest'));
+    app.use('/basicAuth', auth.connect(basic), remotes.handler('rest'));
+    app.use('/digestAuth', auth.connect(digest), remotes.handler('rest'));
     app.use('/bearerAuth', bearerMiddleware('bearertoken'), remotes.handler('rest'));
     server = app.listen(0, '127.0.0.1', done);
   });
@@ -103,32 +103,26 @@ describe('support for HTTP Authentication', function() {
   }
 
   function invokeRemote(port, path, credentials, callback) {
-    let auth, split, headers = {}
+    let auth, split;
 
     if (typeof credentials === 'string') {
-      split = credentials && credentials.split(':')
+      split = credentials && credentials.split(':');
       if (split && split.length === 2) {
         auth = {
           username: split[0],
           password: split[1],
         };
-        const encoded = Buffer.from(`${split[0]}:${split[1]}`).toString('base64')
-        headers.Authorization = `Basic ${encoded}`
       }
     } else if (credentials && typeof credentials === 'object') {
       auth = credentials;
-      if (credentials.bearer) {
-        headers.Authorization = `Bearer ${credentials.bearer}`
-      }
     }
 
-    const url = fmt('http://127.0.0.1:%d%s', port, path)
-    const method = 'User.login'
-    const args = [{username: 'joe', password: 'secret'}]
-    remotes.connect(url, 'rest')
-    remotes.headers = headers
-    remotes.auth = auth
-    remotes.invoke(method, args, callback)
+    const url = fmt('http://127.0.0.1:%d%s', port, path);
+    const method = 'User.login';
+    const args = [{username: 'joe', password: 'secret'}];
+    remotes.connect(url, 'rest');
+    remotes.auth = auth;
+    remotes.invoke(method, args, callback);
   }
 });
 
