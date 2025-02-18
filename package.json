@@ -49,7 +49,7 @@
     "eslint-config-loopback": "^13.1.0",
     "event-stream": "^4.0.1",
     "eventsource": "1.1.2",
-    "http-auth": "^4.2.0",
+    "http-auth": "3.2.4",
     "mocha": "^11.1.0",
     "nyc": "^17.1.0",
     "requirejs": "^2.3.7",
