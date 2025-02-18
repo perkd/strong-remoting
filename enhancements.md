@@ -41,22 +41,16 @@ Note: `dirty-chai`, `eslint-config-loopback` and `event-stream` remain unchanged
 
 ## Enhancement Journal
 
-4. Upgraded `loopback-phase` from 3.1.0 to 3.4.0
+3. Upgraded `loopback-phase` from 3.1.0 to 3.4.0
   - Added promise-based phase execution support
   - Improved error handling in phase pipelines
   - Updated to use Node.js 14+ runtime features
   - Migrated callback-style phase execution to async/await pattern
   - Integrated security fixes from lodash dependency updates
 
-3. Bluebird Replacement
+2. Bluebird Replacement
 - Removed Bluebird from devDependencies in package.json
 - Verified that no code explicitly imports Bluebird, relying on native Promise instead
-
-2. EventEmitter Replacement
-- Replaced eventemitter2 (deprecated) with Node's native EventEmitter in lib/remote-objects.js
-  - Updated the require statement from `require('eventemitter2').EventEmitter2` to `const {EventEmitter} = require('events')`
-  - Removed eventemitter2 from package.json dependencies
-  - Updated associated comments to reflect the change
 
 1. Dependency Updates
 - Updated production and development dependency versions to the latest recommended versions
