@@ -68,4 +68,5 @@
     "strong-error-handler": false
   },
   "license": "Artistic-2.0"
+  "packageManager": "yarn@4.6.0"
 }
