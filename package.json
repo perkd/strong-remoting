@@ -8,7 +8,7 @@
     "REST"
   ],
   "author": "IBM Corp.",
-  "version": "3.17.0",
+  "version": "3.20.0",
   "engines": {
     "node": ">=20"
   },
