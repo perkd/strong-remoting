@@ -12,3 +12,4 @@ node_modules/
 /coverage/
 dist
 .nyc_output/
+.yarn/install-state.gz
