@@ -1,0 +1,44 @@
+{
+  "reporter": [
+    "text",
+    "html",
+    "lcov",
+    "json"
+  ],
+  "reports-dir": "coverage",
+  "temp-directory": ".nyc_output",
+  "exclude": [
+    "test/**",
+    "coverage/**",
+    "scripts/**",
+    "node_modules/**",
+    "*.config.js",
+    "*.test.js",
+    "**/*.test.js",
+    "**/*.spec.js",
+    "**/test/**",
+    "**/.nyc_output/**",
+    "**/coverage/**"
+  ],
+  "include": [
+    "lib/**/*.js",
+    "index.js"
+  ],
+  "extension": [
+    ".js"
+  ],
+  "cache": true,
+  "all": true,
+  "check-coverage": true,
+  "lines": 30,
+  "functions": 25,
+  "branches": 60,
+  "statements": 30,
+  "per-file": true,
+  "skip-full": false,
+  "clean": true,
+  "resolve": "",
+  "omit-relative": false,
+  "allowExternal": false,
+  "excludeNodeModules": true
+}
