@@ -9,7 +9,8 @@ const debug = require('debug')('test');
 const expect = require('chai').expect;
 const util = require('util');
 const format = util.format;
-// Removed deprecated util._extend - using Object.assign() instead
+// Use Object.assign() instead of deprecated util._extend
+const extend = Object.assign;
 
 const EMPTY_QUERY = '';
 
