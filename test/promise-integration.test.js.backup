@@ -5,11 +5,7 @@
 
 'use strict';
 
-// Native Node.js test imports
-const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
-const assert = require('node:assert');
-
-const { expect } = require('../test-config'); // Use native expect interface
+const expect = require('chai').expect;
 const RemoteObjects = require('../');
 const SharedClass = require('../lib/shared-class');
 const ContextBase = require('../lib/context-base');
@@ -52,8 +48,8 @@ describe('Promise Integration', function() {
 
       // Test callback mode
       remotes.invoke('test', [], [], function(err, result) {
-        assert.strictEqual(callbackMode, true);
-        assert.strictEqual(result, 'callback result');
+        expect(callbackMode).to.be.true;
+        expect(result).to.equal('callback result');
       });
 
       // Test Promise mode detection
@@ -61,8 +57,8 @@ describe('Promise Integration', function() {
       expect(promise).to.be.a('promise');
       promiseMode = true;
 
-      assert.strictEqual(callbackMode, true);
-      assert.strictEqual(promiseMode, true);
+      expect(callbackMode).to.be.true;
+      expect(promiseMode).to.be.true;
     });
 
     it('should handle Promise rejection correctly', async function() {
@@ -76,7 +72,7 @@ describe('Promise Integration', function() {
         expect.fail('Should have thrown an error');
       } catch (err) {
         expect(err).to.be.an('error');
-        assert.strictEqual(err.message, 'Test error');
+        expect(err.message).to.equal('Test error');
       }
     });
 
@@ -87,7 +83,7 @@ describe('Promise Integration', function() {
       };
 
       const result = await remotes.invoke('test', [], []);
-      assert.strictEqual(result, 'success result');
+      expect(result).to.equal('success result');
     });
 
     it('should handle multiple return values in Promise mode', async function() {
@@ -103,15 +99,7 @@ describe('Promise Integration', function() {
   });
 
   describe('invokeMethodInContext Promise API', function() {
-    it('should support callback mode', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should support callback mode', function(done) {
       // Mock the adapter connection check and original invokeMethodInContext
       remotes.serverAdapter = { invoke: () => {} }; // Mock adapter
       remotes._original_invokeMethodInContext = function(ctx, callback) {
@@ -157,7 +145,7 @@ describe('Promise Integration', function() {
 
       await remotes.invokeMethodInContext(ctx);
       // If we get here without error, the Promise resolved successfully
-      assert.strictEqual(true, true);
+      expect(true).to.be.true;
     });
   });
 
@@ -197,15 +185,7 @@ describe('Promise Integration', function() {
   });
 
   describe('Backward Compatibility Verification', function() {
-    it('should maintain callback behavior with mocked invoke', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should maintain callback behavior with mocked invoke', function(done) {
       this.timeout(5000);
       // Mock the adapter to test callback compatibility
       remotes.serverAdapter = {
@@ -216,20 +196,12 @@ describe('Promise Integration', function() {
 
       remotes.invoke('TestMethod', [], [], function(err, result) {
         expect(err).to.be.null;
-        assert.strictEqual(result, 'result for TestMethod');
+        expect(result).to.equal('result for TestMethod');
         done();
       });
     });
 
-    it('should handle argument variations correctly', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should handle argument variations correctly', function(done) {
       // Mock the adapter to test argument handling
       remotes.serverAdapter = {
         invoke: function() {
@@ -241,7 +213,7 @@ describe('Promise Integration', function() {
 
       // Test different argument patterns
       remotes.invoke('Method1', [], [], function(err, result) {
-        assert.strictEqual(result, 'success');
+        expect(result).to.equal('success');
         done();
       });
     });

@@ -5,10 +5,6 @@
 
 'use strict';
 
-// Native Node.js test imports
-const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
-const assert = require('node:assert');
-
 const assert = require('assert');
 const RemoteObjects = require('../');
 const express = require('express');
@@ -86,52 +82,20 @@ describe('strong-remoting-jsonrpc', function() {
         objects.addClass(productClass);
       });
 
-      it('should support calling object methods', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should support calling object methods', function(done) {
         jsonrpc('/user/jsonrpc', 'greet', ['JS'])
           .expect({'jsonrpc': '2.0', 'id': 1, 'result': 'JS'}, done);
       });
-      it('Should successfully call a method with named parameters', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('Should successfully call a method with named parameters', function(done) {
         jsonrpc('/mathematic/jsonrpc', 'sum', {'numB': 9, 'numA': 2})
           .expect({'jsonrpc': '2.0', 'id': 1, 'result': 11}, done);
       });
-      it('should support a remote method using shared method', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should support a remote method using shared method', function(done) {
         jsonrpc('/product/jsonrpc', 'getPrice', [])
           .expect({'jsonrpc': '2.0', 'id': 1, 'result': 100}, done);
       });
 
-      it('should report error for non-existent methods', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should report error for non-existent methods', function(done) {
         jsonrpc('/user/jsonrpc', 'greet1', ['JS'])
           .expect({
             'jsonrpc': '2.0',
@@ -144,15 +108,7 @@ describe('strong-remoting-jsonrpc', function() {
       });
 
       // The 1kb limit is set by RemoteObjects.create({json: {limit: '1kb'}});
-      it('should reject json payload larger than 1kb', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should reject json payload larger than 1kb', function(done) {
         // Build an object that is larger than 1kb
         let name = '';
         for (let i = 0; i < 2048; i++) {

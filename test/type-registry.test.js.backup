@@ -5,11 +5,7 @@
 
 'use strict';
 
-// Native Node.js test imports
-const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
-const assert = require('node:assert');
-
-const { expect } = require('../test-config'); // Use native expect interface
+const expect = require('chai').expect;
 const TypeRegistry = require('../lib/type-registry');
 
 describe('TypeRegistry', function() {

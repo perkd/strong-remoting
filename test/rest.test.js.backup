@@ -5,10 +5,6 @@
 
 'use strict';
 
-// Native Node.js test imports
-const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
-const assert = require('node:assert');
-
 const assert = require('assert');
 const extend = require('util')._extend;
 const inherits = require('util').inherits;
@@ -120,15 +116,7 @@ describe('strong-remoting-rest', function() {
 
   describe('remoting options', function() {
     // The 1kb limit is set by RemoteObjects.create({json: {limit: '1kb'}});
-    it('should reject json payload larger than 1kb', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should reject json payload larger than 1kb', function(done) {
       const method = givenSharedStaticMethod(
         function greet(msg, cb) {
           cb(null, msg);
@@ -152,15 +140,7 @@ describe('strong-remoting-rest', function() {
         .expect(413, done);
     });
 
-    it('should allow custom error handlers', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should allow custom error handlers', function(done) {
       let called = false;
       const method = givenSharedStaticMethod(
         function(cb) {
@@ -184,15 +164,7 @@ describe('strong-remoting-rest', function() {
         }));
     });
 
-    it('should exclude stack traces by default', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should exclude stack traces by default', function(done) {
       const method = givenSharedStaticMethod(
         function(cb) { cb(new Error('test-error')); },
       );
@@ -208,15 +180,7 @@ describe('strong-remoting-rest', function() {
         ));
     });
 
-    it('should turn off url-not-found handler', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should turn off url-not-found handler', function(done) {
       objects.options.rest = {handleUnknownPaths: false};
       app.use(function(req, res, next) {
         res.status(404).send('custom-not-found');
@@ -228,15 +192,7 @@ describe('strong-remoting-rest', function() {
         .end(done);
     });
 
-    it('should turn off method-not-found handler', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should turn off method-not-found handler', function(done) {
       const method = givenSharedStaticMethod();
 
       objects.options.rest = {handleUnknownPaths: false};
@@ -250,15 +206,7 @@ describe('strong-remoting-rest', function() {
         .end(done);
     });
 
-    it('should by default use defined error handler', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should by default use defined error handler', function(done) {
       app.use(function(err, req, res, next) {
         res.send('custom-error-handler-called');
       });
@@ -271,15 +219,7 @@ describe('strong-remoting-rest', function() {
         .end(done);
     });
 
-    it('should turn off error handler', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should turn off error handler', function(done) {
       objects.options.rest = {handleErrors: false};
       app.use(function(err, req, res, next) {
         res.send('custom-error-handler-called');
@@ -291,15 +231,7 @@ describe('strong-remoting-rest', function() {
         .end(done);
     });
 
-    it('should configure custom REST content types', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should configure custom REST content types', function(done) {
       const supportedTypes = ['json', 'application/javascript', 'text/javascript'];
       objects.options.rest = {supportedTypes: supportedTypes};
 
@@ -326,15 +258,7 @@ describe('strong-remoting-rest', function() {
         .expect(200, done);
     });
 
-    it('should disable XML content types by default', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should disable XML content types by default', function(done) {
       delete objects.options.rest;
 
       const method = givenSharedStaticMethod(
@@ -349,15 +273,7 @@ describe('strong-remoting-rest', function() {
         .end(done);
     });
 
-    it('should enable XML types via `options.rest.xml`', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should enable XML types via `options.rest.xml`', function(done) {
       objects.options.rest = {xml: true};
 
       const method = givenSharedStaticMethod(
@@ -384,15 +300,7 @@ describe('strong-remoting-rest', function() {
         });
     });
 
-    it('should enable XML via `options.rest.supportedTypes`', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should enable XML via `options.rest.supportedTypes`', function(done) {
       objects.options.rest = {supportedTypes: ['application/xml']};
 
       const method = givenSharedStaticMethod(
@@ -407,15 +315,7 @@ describe('strong-remoting-rest', function() {
         .end(done);
     });
 
-    it('should treat application/vnd.api+json accept header correctly', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should treat application/vnd.api+json accept header correctly', function(done) {
       objects.options.rest = {supportedTypes: ['application/vnd.api+json']};
 
       const method = givenSharedStaticMethod(
@@ -455,15 +355,7 @@ describe('strong-remoting-rest', function() {
       );
     });
 
-    it('should reject cross-origin requests', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should reject cross-origin requests', function(done) {
       request(app).post(method.url)
         .set('Accept', 'application/json')
         .set('Content-Type', 'application/json')
@@ -478,15 +370,7 @@ describe('strong-remoting-rest', function() {
         });
     });
 
-    it('should reject preflight (OPTIONS) requests', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should reject preflight (OPTIONS) requests', function(done) {
       request(app).options(method.url)
         .set('Accept', 'application/json')
         .set('Content-Type', 'application/json')
@@ -511,15 +395,7 @@ describe('strong-remoting-rest', function() {
   describe('call of constructor method', function() {
     beforeEach(enableXmlSupport);
 
-    it('should work', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should work', function(done) {
       const method = givenSharedStaticMethod(
         function greet(msg, cb) {
           cb(null, msg);
@@ -534,15 +410,7 @@ describe('strong-remoting-rest', function() {
         .expect(200, {msg: 'hello'}, done);
     });
 
-    it('should honor Accept: header', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should honor Accept: header', function(done) {
       const method = givenSharedStaticMethod(
         function greet2(msg, cb) {
           cb(null, msg);
@@ -558,15 +426,7 @@ describe('strong-remoting-rest', function() {
           '<msg>hello</msg>\n</response>', done);
     });
 
-    it('should handle returns of array', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should handle returns of array', function(done) {
       const method = givenSharedStaticMethod(
         function greet3(msg, cb) {
           cb(null, [msg]);
@@ -582,15 +442,7 @@ describe('strong-remoting-rest', function() {
           '<msg>hello</msg>\n</response>', done);
     });
 
-    it('should handle returns of array to XML', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should handle returns of array to XML', function(done) {
       const method = givenSharedStaticMethod(
         function greet4(msg, cb) {
           cb(null, [msg]);
@@ -606,15 +458,7 @@ describe('strong-remoting-rest', function() {
           '<result>hello</result>\n</response>', done);
     });
 
-    it('should allow arguments in the path', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should allow arguments in the path', function(done) {
       const method = givenSharedStaticMethod(
         function bar(a, b, cb) {
           cb(null, a + b);
@@ -633,15 +477,7 @@ describe('strong-remoting-rest', function() {
         .expect({n: 3}, done);
     });
 
-    it('should allow arguments in the query', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should allow arguments in the query', function(done) {
       const method = givenSharedStaticMethod(
         function bar(a, b, cb) {
           cb(null, a + b);
@@ -660,15 +496,7 @@ describe('strong-remoting-rest', function() {
         .expect({n: 3}, done);
     });
 
-    it('should allow string[] arg in the query', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should allow string[] arg in the query', function(done) {
       const method = givenSharedStaticMethod(
         function bar(a, b, cb) {
           cb(null, b.join('') + a);
@@ -687,15 +515,8 @@ describe('strong-remoting-rest', function() {
         .expect({n: 'xyz'}, done);
     });
 
-    it('should allow string[] arg in the query with stringified value', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should allow string[] arg in the query with stringified value',
+      function(done) {
         const method = givenSharedStaticMethod(
           function bar(a, b, cb) {
             cb(null, b.join('') + a);
@@ -714,15 +535,7 @@ describe('strong-remoting-rest', function() {
           .expect({n: 'xyz'}, done);
       });
 
-    it('should allow custom argument functions', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should allow custom argument functions', function(done) {
       const method = givenSharedStaticMethod(
         function bar(a, b, cb) {
           cb(null, a + b);
@@ -743,15 +556,7 @@ describe('strong-remoting-rest', function() {
         .expect({n: 3}, done);
     });
 
-    it('should pass undefined if the argument is not supplied', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should pass undefined if the argument is not supplied', function(done) {
       let called = false;
       const method = givenSharedStaticMethod(
         function bar(a, cb) {
@@ -772,15 +577,7 @@ describe('strong-remoting-rest', function() {
       });
     });
 
-    it('should allow arguments in the body', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should allow arguments in the body', function(done) {
       const method = givenSharedStaticMethod(
         function bar(a, cb) {
           cb(null, a);
@@ -805,15 +602,7 @@ describe('strong-remoting-rest', function() {
         });
     });
 
-    it('should allow arguments in the body with date', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should allow arguments in the body with date', function(done) {
       const method = givenSharedStaticMethod(
         function bar(a, cb) {
           cb(null, a);
@@ -839,15 +628,7 @@ describe('strong-remoting-rest', function() {
         });
     });
 
-    it('should allow arguments in the form', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should allow arguments in the form', function(done) {
       const method = givenSharedStaticMethod(
         function bar(a, b, cb) {
           cb(null, a + b);
@@ -870,15 +651,7 @@ describe('strong-remoting-rest', function() {
         .expect({n: 3}, done);
     });
 
-    it('should allow arguments in the header', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should allow arguments in the header', function(done) {
       const method = givenSharedStaticMethod(
         function bar(a, b, cb) {
           cb(null, a + b);
@@ -903,15 +676,8 @@ describe('strong-remoting-rest', function() {
         .expect({n: 3}, done);
     });
 
-    it('should allow arguments in the header without http source', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should allow arguments in the header without http source',
+      function(done) {
         const method = givenSharedStaticMethod(
           function bar(a, b, cb) {
             cb(null, a + b);
@@ -936,15 +702,7 @@ describe('strong-remoting-rest', function() {
           .expect({n: 3}, done);
       });
 
-    it('should allow arguments from http req and res', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should allow arguments from http req and res', function(done) {
       const method = givenSharedStaticMethod(
         function bar(req, res, cb) {
           res.status(200).send(req.body);
@@ -969,15 +727,7 @@ describe('strong-remoting-rest', function() {
         });
     });
 
-    it('should allow arguments from http context', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should allow arguments from http context', function(done) {
       const method = givenSharedStaticMethod(
         function bar(ctx, cb) {
           ctx.res.status(200).send(ctx.req.body);
@@ -1001,15 +751,7 @@ describe('strong-remoting-rest', function() {
         });
     });
 
-    it('should respond with 204 if returns is not defined', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should respond with 204 if returns is not defined', function(done) {
       const method = givenSharedStaticMethod(
         function(cb) { cb(null, 'value-to-ignore'); },
       );
@@ -1018,15 +760,7 @@ describe('strong-remoting-rest', function() {
         .expect(204, done);
     });
 
-    it('should preserve non-200 status when responding with no content', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should preserve non-200 status when responding with no content', function(done) {
       const method = givenSharedStaticMethod(
         function(ctx, cb) {
           ctx.res.status(302);
@@ -1049,15 +783,7 @@ describe('strong-remoting-rest', function() {
         .expect(302, done);
     });
 
-    it('should accept custom content-type header if respond with 204', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should accept custom content-type header if respond with 204', function(done) {
       const method = givenSharedStaticMethod();
       objects.before(method.name, function(ctx, next) {
         ctx.res.set('Content-Type',
@@ -1072,15 +798,7 @@ describe('strong-remoting-rest', function() {
         .expect(204, done);
     });
 
-    it('should respond with named results if returns has multiple args', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should respond with named results if returns has multiple args', function(done) {
       const method = givenSharedStaticMethod(
         function(a, b, cb) {
           cb(null, a, b);
@@ -1101,15 +819,7 @@ describe('strong-remoting-rest', function() {
         .expect({a: 1, b: 2}, done);
     });
 
-    it('should remove any X-Powered-By header to LoopBack', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should remove any X-Powered-By header to LoopBack', function(done) {
       const method = givenSharedStaticMethod(
         function(cb) { cb(null, 'value-to-ignore'); },
       );
@@ -1122,15 +832,7 @@ describe('strong-remoting-rest', function() {
         });
     });
 
-    it('should report error for mismatched arg type', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should report error for mismatched arg type', function(done) {
       remotes.foo = {
         bar: function(a, fn) {
           fn(null, a);
@@ -1149,15 +851,7 @@ describe('strong-remoting-rest', function() {
         .expect(400, done);
     });
 
-    it('should not coerce nested boolean strings - true', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should not coerce nested boolean strings - true', function(done) {
       remotes.foo = {
         bar: function(a, fn) {
           fn(null, a);
@@ -1176,15 +870,7 @@ describe('strong-remoting-rest', function() {
         .expect({foo: 'true'}, done);
     });
 
-    it('should not coerce nested boolean strings - false', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should not coerce nested boolean strings - false', function(done) {
       remotes.foo = {
         bar: function(a, fn) {
           fn(null, a);
@@ -1203,15 +889,7 @@ describe('strong-remoting-rest', function() {
         .expect({foo: 'false'}, done);
     });
 
-    it('should coerce number strings', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should coerce number strings', function(done) {
       remotes.foo = {
         bar: function(a, b, fn) {
           fn(null, a + b);
@@ -1234,15 +912,7 @@ describe('strong-remoting-rest', function() {
         });
     });
 
-    it('should coerce strings with type set to "any"', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should coerce strings with type set to "any"', function(done) {
       remotes.foo = {
         bar: function(a, b, c, fn) {
           fn(null, c === true ? a + b : 0);
@@ -1266,15 +936,7 @@ describe('strong-remoting-rest', function() {
         });
     });
     describe('data type - integer', function() {
-      it('should coerce integer strings', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should coerce integer strings', function(done) {
         remotes.foo = {
           bar: function(a, b, fn) {
             fn(null, a + b);
@@ -1297,15 +959,7 @@ describe('strong-remoting-rest', function() {
           });
       });
 
-      it('supports target type [integer]', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('supports target type [integer]', function(done) {
         const method = givenSharedStaticMethod(
           function(arg, cb) {
             cb(null, {value: arg});
@@ -1323,15 +977,7 @@ describe('strong-remoting-rest', function() {
           .end(done);
       });
 
-      it('supports return type [integer]', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('supports return type [integer]', function(done) {
         const method = givenSharedStaticMethod(
           function(arg, cb) {
             cb(null, [arg[0], arg[1]]);
@@ -1350,15 +996,7 @@ describe('strong-remoting-rest', function() {
       });
     });
 
-    it('should pass an array argument even when non-array passed', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should pass an array argument even when non-array passed', function(done) {
       remotes.foo = {
         bar: function(a, fn) {
           fn(null, Array.isArray(a));
@@ -1381,15 +1019,7 @@ describe('strong-remoting-rest', function() {
         });
     });
 
-    it('should coerce contents of array with simple array types', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should coerce contents of array with simple array types', function(done) {
       remotes.foo = {
         bar: function(a, fn) {
           fn(null, a.reduce(function(memo, val) { return memo + val; }, 0));
@@ -1411,15 +1041,7 @@ describe('strong-remoting-rest', function() {
         });
     });
 
-    it('should not flatten arrays for target type "any"', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should not flatten arrays for target type "any"', function(done) {
       const method = givenSharedStaticMethod(
         function(arg, cb) { cb(null, {value: arg}); },
         {
@@ -1435,15 +1057,7 @@ describe('strong-remoting-rest', function() {
         .end(done);
     });
 
-    it('should support taget type [any]', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should support taget type [any]', function(done) {
       const method = givenSharedStaticMethod(
         function(arg, cb) { cb(null, {value: arg}); },
         {
@@ -1459,15 +1073,7 @@ describe('strong-remoting-rest', function() {
         .end(done);
     });
 
-    it('should support taget type `array` - of string', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should support taget type `array` - of string', function(done) {
       const method = givenSharedStaticMethod(
         function(arg, cb) { cb(null, {value: arg}); },
         {
@@ -1483,15 +1089,7 @@ describe('strong-remoting-rest', function() {
         .end(done);
     });
 
-    it('should support taget type `array` - of number', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should support taget type `array` - of number', function(done) {
       const method = givenSharedStaticMethod(
         function(arg, cb) { cb(null, {value: arg}); },
         {
@@ -1507,15 +1105,7 @@ describe('strong-remoting-rest', function() {
         .end(done);
     });
 
-    it('should support taget type `array` - of object', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should support taget type `array` - of object', function(done) {
       const method = givenSharedStaticMethod(
         function(arg, cb) { cb(null, {value: arg}); },
         {
@@ -1531,15 +1121,7 @@ describe('strong-remoting-rest', function() {
         .end(done);
     });
 
-    it('should allow empty body for json request', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should allow empty body for json request', function(done) {
       remotes.foo = {
         bar: function(a, b, fn) {
           fn(null, a, b);
@@ -1563,15 +1145,7 @@ describe('strong-remoting-rest', function() {
         .expect({a: 1, b: 2}, done);
     });
 
-    it('should split array string when configured', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should split array string when configured', function(done) {
       objects.options.rest = {arrayItemDelimiters: [',', '|']};
       const method = givenSharedStaticMethod(
         function(a, cb) { cb(null, a); },
@@ -1585,15 +1159,7 @@ describe('strong-remoting-rest', function() {
         .expect({data: [1, 2, 3]}, done);
     });
 
-    it('should not create empty string array with empty string arg', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should not create empty string array with empty string arg', function(done) {
       objects.options.rest = {arrayItemDelimiters: [',', '|']};
       const method = givenSharedStaticMethod(
         function(a, cb) { cb(null, a); },
@@ -1607,15 +1173,7 @@ describe('strong-remoting-rest', function() {
         .expect({ /* data is undefined */ }, done);
     });
 
-    it('should still support JSON arrays with arrayItemDelimiters', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should still support JSON arrays with arrayItemDelimiters', function(done) {
       objects.options.rest = {arrayItemDelimiters: [',', '|']};
       const method = givenSharedStaticMethod(
         function(a, cb) { cb(null, a); },
@@ -1629,15 +1187,7 @@ describe('strong-remoting-rest', function() {
         .expect({data: [1, 2, 3]}, done);
     });
 
-    it('should call rest hooks', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should call rest hooks', function(done) {
       const hooksCalled = [];
 
       const method = givenSharedStaticMethod({
@@ -1668,15 +1218,7 @@ describe('strong-remoting-rest', function() {
       }
     });
 
-    it('should respect supported types', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should respect supported types', function(done) {
       const method = givenSharedStaticMethod(
         function(cb) {
           cb(null, {key: 'value'});
@@ -1695,15 +1237,7 @@ describe('strong-remoting-rest', function() {
     describe('xml support', function() {
       beforeEach(enableXmlSupport);
 
-      it('should produce xml from json objects', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should produce xml from json objects', function(done) {
         const method = givenSharedStaticMethod(
           function bar(a, cb) {
             cb(null, a);
@@ -1723,21 +1257,13 @@ describe('strong-remoting-rest', function() {
           .send('{"x": 1, "y": "Y"}')
           .expect('Content-Type', /xml/)
           .expect(200, function(err, res) {
-            assert.strictEqual(res.text, '<?xml version="1.0" encoding="UTF-8"?>\n' +
+            expect(res.text).to.equal('<?xml version="1.0" encoding="UTF-8"?>\n' +
               '<response>\n  <x>1</x>\n  <y>Y</y>\n</response>');
             done(err, res);
           });
       });
 
-      it('should produce xml from json array', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should produce xml from json array', function(done) {
         const method = givenSharedStaticMethod(
           function bar(cb) {
             cb(null, [1, 2, 3]);
@@ -1754,22 +1280,14 @@ describe('strong-remoting-rest', function() {
           .send('{"x": 1, "y": "Y"}')
           .expect('Content-Type', /xml/)
           .expect(200, function(err, res) {
-            assert.strictEqual(res.text, '<?xml version=\"1.0\" ' +
+            expect(res.text).to.equal('<?xml version=\"1.0\" ' +
               'encoding=\"UTF-8\"?>\n<response>\n  <result>1</result>\n  ' +
               '<result>2</result>\n  <result>3</result>\n</response>');
             done(err, res);
           });
       });
 
-      it('should produce xml from json objects with toJSON()', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should produce xml from json objects with toJSON()', function(done) {
         const method = givenSharedStaticMethod(
           function bar(a, cb) {
             const result = a;
@@ -1796,21 +1314,14 @@ describe('strong-remoting-rest', function() {
           .send('{"x": 1, "y": "Y"}')
           .expect('Content-Type', /xml/)
           .expect(200, function(err, res) {
-            assert.strictEqual(res.text, '<?xml version="1.0" encoding="UTF-8"?>\n' +
+            expect(res.text).to.equal('<?xml version="1.0" encoding="UTF-8"?>\n' +
               '<response>\n  <foo>Y</foo>\n  <bar>1</bar>\n</response>');
             done(err, res);
           });
       });
 
-      it('should produce xml from json objects with toJSON() inside an array', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should produce xml from json objects with toJSON() inside an array',
+        function(done) {
           const method = givenSharedStaticMethod(
             function bar(a, cb) {
               a.toJSON = function() {
@@ -1836,7 +1347,7 @@ describe('strong-remoting-rest', function() {
             .send('{"x": 1, "y": "Y"}')
             .expect('Content-Type', /xml/)
             .expect(200, function(err, res) {
-              assert.strictEqual(res.text, '<?xml version=\"1.0\" ' +
+              expect(res.text).to.equal('<?xml version=\"1.0\" ' +
               'encoding=\"UTF-8\"?>\n<response>\n  <result>\n    ' +
               '<foo>Y</foo>\n    <bar>1</bar>\n  </result>\n  <result>\n    ' +
               '<c>1</c>\n  </result>\n</response>');
@@ -1844,15 +1355,7 @@ describe('strong-remoting-rest', function() {
             });
         });
 
-      it('should allow customized xml root element', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should allow customized xml root element', function(done) {
         const method = givenSharedStaticMethod(
           function bar(cb) {
             cb(null, {a: 1, b: 2});
@@ -1871,7 +1374,7 @@ describe('strong-remoting-rest', function() {
           .send()
           .expect('Content-Type', /xml/)
           .expect(200, function(err, res) {
-            assert.strictEqual(res.text, 
+            expect(res.text).to.equal(
               '<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n' +
               '<foo>\n  ' +
                 '<a>1</a>\n  ' +
@@ -1882,15 +1385,7 @@ describe('strong-remoting-rest', function() {
           });
       });
 
-      it('should allow xml declaration to be disabled', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should allow xml declaration to be disabled', function(done) {
         const method = givenSharedStaticMethod(
           function bar(cb) {
             cb(null, {a: 1, b: 2});
@@ -1909,7 +1404,7 @@ describe('strong-remoting-rest', function() {
           .send()
           .expect('Content-Type', /xml/)
           .expect(200, function(err, res) {
-            assert.strictEqual(res.text, 
+            expect(res.text).to.equal(
               '<response>\n  ' +
                 '<a>1</a>\n  ' +
                 '<b>2</b>\n' +
@@ -1919,15 +1414,7 @@ describe('strong-remoting-rest', function() {
           });
       });
 
-      it('should allow string results to output as xml', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should allow string results to output as xml', function(done) {
         const method = givenSharedStaticMethod(
           function bar(cb) {
             const stringResult = 'a quick brown fox jumps over the lazy dog';
@@ -1947,7 +1434,7 @@ describe('strong-remoting-rest', function() {
           .send()
           .expect('Content-Type', /xml/)
           .expect(200, function(err, res) {
-            assert.strictEqual(res.text, 
+            expect(res.text).to.equal(
               '<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n' +
               '<text>a quick brown fox jumps over the lazy dog' +
               '</text>',
@@ -1956,15 +1443,7 @@ describe('strong-remoting-rest', function() {
           });
       });
 
-      it('should handle UTF-8 & special & reserved characters', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should handle UTF-8 & special & reserved characters', function(done) {
         const method = givenSharedStaticMethod(
           function bar(cb) {
             const stringA = 'foo\xC1\xE1\u0102\u03A9asd><=$~!@#$%^&*()-_=+/.,;\'"[]{}?';
@@ -1994,15 +1473,7 @@ describe('strong-remoting-rest', function() {
           });
       });
 
-      it('should produce xml from json objects with toXML()', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should produce xml from json objects with toXML()', function(done) {
         const method = givenSharedStaticMethod(
           function bar(a, cb) {
             const result = a;
@@ -2027,7 +1498,7 @@ describe('strong-remoting-rest', function() {
           .send('{"x": 1, "y": "Y"}')
           .expect('Content-Type', /xml/)
           .expect(200, function(err, res) {
-            assert.strictEqual(res.text, '<?xml version="1.0" encoding="UTF-8"?>' +
+            expect(res.text).to.equal('<?xml version="1.0" encoding="UTF-8"?>' +
               '<root><x>10</x></root>');
             done(err, res);
           });
@@ -2035,15 +1506,7 @@ describe('strong-remoting-rest', function() {
     });
 
     describe('_format support', function() {
-      it('should produce xml if _format is xml', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should produce xml if _format is xml', function(done) {
         const method = givenSharedStaticMethod(
           function bar(a, cb) {
             cb(null, a);
@@ -2063,21 +1526,13 @@ describe('strong-remoting-rest', function() {
           .send('{"x": 1, "y": "Y"}')
           .expect('Content-Type', /xml/)
           .expect(200, function(err, res) {
-            assert.strictEqual(res.text, '<?xml version="1.0" encoding="UTF-8"?>\n' +
+            expect(res.text).to.equal('<?xml version="1.0" encoding="UTF-8"?>\n' +
               '<response>\n  <x>1</x>\n  <y>Y</y>\n</response>');
             done(err, res);
           });
       });
 
-      it('should produce json if _format is json', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should produce json if _format is json', function(done) {
         const method = givenSharedStaticMethod(
           function bar(a, cb) {
             cb(null, a);
@@ -2102,15 +1557,7 @@ describe('strong-remoting-rest', function() {
           });
       });
 
-      it('should return a 400 if _format array', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should return a 400 if _format array', function(done) {
         const method = givenSharedStaticMethod(
           function bar(a, cb) {
             cb(null, a);
@@ -2136,15 +1583,7 @@ describe('strong-remoting-rest', function() {
     });
 
     describe('uncaught errors', function() {
-      it('should return 500 if an error object is thrown', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should return 500 if an error object is thrown', function(done) {
         remotes.shouldThrow = {
           bar: function(fn) {
             throw new Error('an error');
@@ -2159,15 +1598,7 @@ describe('strong-remoting-rest', function() {
           .end(expectErrorResponseContaining({message: 'an error'}, done));
       });
 
-      it('should return 500 if an array of errors is thrown', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should return 500 if an array of errors is thrown', function(done) {
         const testError = new Error('expected test error');
         const errArray = [testError, testError];
 
@@ -2198,15 +1629,7 @@ describe('strong-remoting-rest', function() {
           });
       });
 
-      it('should return 500 if an error string is thrown', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should return 500 if an error string is thrown', function(done) {
         remotes.shouldThrow = {
           bar: function(fn) {
             throw 'an error';
@@ -2221,15 +1644,8 @@ describe('strong-remoting-rest', function() {
           .end(expectErrorResponseContaining({message: 'an error'}, done));
       });
 
-      it('should return 500 for unhandled errors thrown from before hooks', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should return 500 for unhandled errors thrown from before hooks',
+        function(done) {
           const method = givenSharedStaticMethod();
 
           objects.before(method.name, function(ctx, next) {
@@ -2247,15 +1663,7 @@ describe('strong-remoting-rest', function() {
         });
     });
 
-    it('should return 500 when method returns an error', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should return 500 when method returns an error', function(done) {
       const method = givenSharedStaticMethod(
         function(cb) {
           cb(new Error('test-error'));
@@ -2270,15 +1678,7 @@ describe('strong-remoting-rest', function() {
         .end(expectErrorResponseContaining({message: 'test-error'}, done));
     });
 
-    it('should return 500 when "before" returns an error', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should return 500 when "before" returns an error', function(done) {
       const method = givenSharedStaticMethod();
       objects.before(method.name, function(ctx, next) {
         next(new Error('test-error'));
@@ -2289,15 +1689,7 @@ describe('strong-remoting-rest', function() {
         .end(expectErrorResponseContaining({message: 'test-error'}, done));
     });
 
-    it('should return 500 when "after" returns an error', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should return 500 when "after" returns an error', function(done) {
       const method = givenSharedStaticMethod();
       objects.after(method.name, function(ctx, next) {
         next(new Error('test-error'));
@@ -2308,15 +1700,7 @@ describe('strong-remoting-rest', function() {
         .end(expectErrorResponseContaining({message: 'test-error'}, done));
     });
 
-    it('should return 400 when a required arg is missing', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should return 400 when a required arg is missing', function(done) {
       const method = givenSharedPrototypeMethod(
         function(a, cb) {
           cb();
@@ -2342,15 +1726,7 @@ describe('strong-remoting-rest', function() {
     });
 
     describe('uncaught errors', function() {
-      it('should return 500 if an error object is thrown', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should return 500 if an error object is thrown', function(done) {
         remotes.shouldThrow = {
           bar: function(fn) {
             throw new Error('an error');
@@ -2365,15 +1741,7 @@ describe('strong-remoting-rest', function() {
           .end(expectErrorResponseContaining({message: 'an error'}, done));
       });
 
-      it('should return 500 if an error string is thrown', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should return 500 if an error string is thrown', function(done) {
         remotes.shouldThrow = {
           bar: function(fn) {
             throw 'an error';
@@ -2389,15 +1757,7 @@ describe('strong-remoting-rest', function() {
       });
     });
 
-    it('should return 500 when method returns an error', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should return 500 when method returns an error', function(done) {
       const method = givenSharedStaticMethod(
         function(cb) {
           cb(new Error('test-error'));
@@ -2414,15 +1774,7 @@ describe('strong-remoting-rest', function() {
   });
 
   describe('call of prototype method', function() {
-    it('should work', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should work', function(done) {
       const method = givenSharedPrototypeMethod(
         function greet(msg, cb) {
           cb(null, this.id + ':' + msg);
@@ -2437,15 +1789,7 @@ describe('strong-remoting-rest', function() {
         .expect(200, {msg: 'world:hello'}, done);
     });
 
-    it('should have the correct scope', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should have the correct scope', function(done) {
       const method = givenSharedPrototypeMethod(
         function greet(msg, cb) {
           assert.equal(this.constructor, method.ctor);
@@ -2461,15 +1805,7 @@ describe('strong-remoting-rest', function() {
         .expect(200, {msg: 'world:hello'}, done);
     });
 
-    it('should allow arguments in the path', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should allow arguments in the path', function(done) {
       const method = givenSharedPrototypeMethod(
         function bar(a, b, cb) {
           cb(null, this.id + ':' + (a + b));
@@ -2488,15 +1824,7 @@ describe('strong-remoting-rest', function() {
         .expect({n: 'sum:3'}, done);
     });
 
-    it('should allow jsonp requests', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should allow jsonp requests', function(done) {
       const method = givenSharedStaticMethod(
         function bar(a, cb) {
           cb(null, a);
@@ -2517,15 +1845,7 @@ describe('strong-remoting-rest', function() {
         .expect('/**/ typeof boo === \'function\' && boo(1);', done);
     });
 
-    it('should allow jsonp requests with null response', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should allow jsonp requests with null response', function(done) {
       const method = givenSharedStaticMethod(
         function bar(a, cb) {
           cb(null, null);
@@ -2545,15 +1865,7 @@ describe('strong-remoting-rest', function() {
         .expect('/**/ typeof boo === \'function\' && boo(null);', done);
     });
 
-    it('should allow arguments in the query', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should allow arguments in the query', function(done) {
       const method = givenSharedPrototypeMethod(
         function bar(a, b, cb) {
           cb(null, this.id + ':' + (a + b));
@@ -2572,15 +1884,7 @@ describe('strong-remoting-rest', function() {
         .expect({n: 'sum:3'}, done);
     });
 
-    it('should support methods on `/` path', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should support methods on `/` path', function(done) {
       const method = givenSharedPrototypeMethod({
         http: {path: '/', verb: 'get'},
       });
@@ -2590,15 +1894,7 @@ describe('strong-remoting-rest', function() {
         .end(done);
     });
 
-    it('should respond with 204 if returns is not defined', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should respond with 204 if returns is not defined', function(done) {
       const method = givenSharedPrototypeMethod(
         function(cb) { cb(null, 'value-to-ignore'); },
       );
@@ -2607,15 +1903,7 @@ describe('strong-remoting-rest', function() {
         .expect(204, done);
     });
 
-    it('should respond with named results if returns has multiple args', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should respond with named results if returns has multiple args', function(done) {
       const method = givenSharedPrototypeMethod(
         function(a, b, cb) {
           cb(null, this.id, a, b);
@@ -2637,15 +1925,7 @@ describe('strong-remoting-rest', function() {
         .expect({id: 'an-id', a: 1, b: 2}, done);
     });
 
-    it('should respect supported types', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should respect supported types', function(done) {
       const method = givenSharedPrototypeMethod(
         function(cb) {
           cb(null, {key: 'value'});
@@ -2661,15 +1941,7 @@ describe('strong-remoting-rest', function() {
         .expect(200, done);
     });
 
-    it('should return 500 when method returns an error', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should return 500 when method returns an error', function(done) {
       const method = givenSharedPrototypeMethod(
         function(cb) {
           cb(new Error('test-error'));
@@ -2681,15 +1953,7 @@ describe('strong-remoting-rest', function() {
         .end(expectErrorResponseContaining({message: 'test-error'}, done));
     });
 
-    it('should return 500 when "before" returns an error', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should return 500 when "before" returns an error', function(done) {
       const method = givenSharedPrototypeMethod();
       objects.before(method.name, function(ctx, next) {
         next(new Error('test-error'));
@@ -2700,15 +1964,7 @@ describe('strong-remoting-rest', function() {
         .end(expectErrorResponseContaining({message: 'test-error'}, done));
     });
 
-    it('should return 500 when "after" returns an error', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should return 500 when "after" returns an error', function(done) {
       const method = givenSharedPrototypeMethod();
       objects.after(method.name, function(ctx, next) {
         next(new Error('test-error'));
@@ -2719,15 +1975,7 @@ describe('strong-remoting-rest', function() {
         .end(expectErrorResponseContaining({message: 'test-error'}, done));
     });
 
-    it('should resolve promise returned by a hook', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should resolve promise returned by a hook', function(done) {
       const method = givenSharedPrototypeMethod();
       const hooksCalled = [];
       objects.before('**', function(ctx) {
@@ -2746,15 +1994,7 @@ describe('strong-remoting-rest', function() {
       });
     });
 
-    it('should handle rejected promise returned by a hook', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should handle rejected promise returned by a hook', function(done) {
       const testError = new Error('expected test error');
       const method = givenSharedPrototypeMethod();
       objects.after('**', function(ctx) {
@@ -2771,15 +2011,7 @@ describe('strong-remoting-rest', function() {
       });
     });
 
-    it('should set "req.remotingContext"', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should set "req.remotingContext"', function(done) {
       const method = givenSharedPrototypeMethod();
       json(method.url).end(function(err) {
         if (err) return done(err);
@@ -2789,15 +2021,7 @@ describe('strong-remoting-rest', function() {
       });
     });
 
-    it('should set "remotingContext.ctorArgs"', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should set "remotingContext.ctorArgs"', function(done) {
       const method = givenSharedPrototypeMethod();
       json(method.getUrlForId(1234)).end(function(err) {
         if (err) return done(err);
@@ -2808,15 +2032,7 @@ describe('strong-remoting-rest', function() {
       });
     });
 
-    it('should prioritise auth errors over sharedCtor errors', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should prioritise auth errors over sharedCtor errors', function(done) {
       const method = givenSharedPrototypeMethod();
       method.ctor._sharedCtor = function(ctx, next) {
         const err = new Error('Not Found');
@@ -2838,15 +2054,7 @@ describe('strong-remoting-rest', function() {
 
   describe('status codes', function() {
     describe('using a custom status code', function() {
-      it('returns a custom status code', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('returns a custom status code', function(done) {
         const method = givenSharedStaticMethod(
           function fn(cb) {
             cb();
@@ -2858,15 +2066,7 @@ describe('strong-remoting-rest', function() {
         json(method.url)
           .expect(201, done);
       });
-      it('returns a custom error status code', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('returns a custom error status code', function(done) {
         const method = givenSharedStaticMethod(
           function fn(cb) {
             cb(new Error('test error'));
@@ -2878,15 +2078,7 @@ describe('strong-remoting-rest', function() {
         json(method.url)
           .expect(508, done);
       });
-      it('returns a custom error status code (using the err object)', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('returns a custom error status code (using the err object)', function(done) {
         const method = givenSharedStaticMethod(
           function fn(cb) {
             const err = new Error('test error');
@@ -2900,15 +2092,7 @@ describe('strong-remoting-rest', function() {
         json(method.url)
           .expect(555, done);
       });
-      it('returns a custom status code from a callback arg', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('returns a custom status code from a callback arg', function(done) {
         const exampleStatus = 222;
         const method = givenSharedStaticMethod(
           function fn(status, cb) {
@@ -2925,15 +2109,7 @@ describe('strong-remoting-rest', function() {
         json(method.url + '?status=' + exampleStatus)
           .expect(exampleStatus, done);
       });
-      it('returns a custom status code from a promise returned value', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('returns a custom status code from a promise returned value', function(done) {
         const exampleStatus = 222;
         const sentBody = {eiste: 'ligo', kopries: true};
         const method = givenSharedStaticMethod(
@@ -2960,30 +2136,14 @@ describe('strong-remoting-rest', function() {
           .catch(done);
       });
     });
-    it('returns 404 for unknown method of a shared class', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('returns 404 for unknown method of a shared class', function(done) {
       const classUrl = givenSharedStaticMethod().classUrl;
 
       json(classUrl + '/unknown-method')
         .expect(404, done);
     });
 
-    it('returns 404 with standard JSON body for unknown URL', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('returns 404 with standard JSON body for unknown URL', function(done) {
       json('/unknown-url')
         .expect(404)
         .end(expectErrorResponseContaining({statusCode: 404}, done));
@@ -2991,15 +2151,7 @@ describe('strong-remoting-rest', function() {
   });
 
   describe('result args as headers', function() {
-    it('sets the header using the callback arg', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('sets the header using the callback arg', function(done) {
       const A_STRING_VALUE = 'foobar';
       const method = givenSharedStaticMethod(
         function fn(input, cb) {
@@ -3020,15 +2172,7 @@ describe('strong-remoting-rest', function() {
         .end(done);
     });
 
-    it('sets the header using the callback arg - root arg', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('sets the header using the callback arg - root arg', function(done) {
       const A_STRING_VALUE = 'foobar';
       const method = givenSharedStaticMethod(
         function fn(input, cb) {
@@ -3049,15 +2193,7 @@ describe('strong-remoting-rest', function() {
         .end(done);
     });
 
-    it('sets the custom header using the callback arg', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('sets the custom header using the callback arg', function(done) {
       const val = 'foobar';
       const method = givenSharedStaticMethod(
         function fn(input, cb) {
@@ -3086,15 +2222,7 @@ describe('strong-remoting-rest', function() {
       ],
     };
 
-    it('should send back Buffer body', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should send back Buffer body', function(done) {
       const method = givenSharedStaticMethod(
         function(cb) { cb(null, new Buffer('some-text'), 'text/plain'); },
         METHOD_SIGNATURE,
@@ -3107,15 +2235,7 @@ describe('strong-remoting-rest', function() {
         .end(done);
     });
 
-    it('should send back String body', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should send back String body', function(done) {
       const method = givenSharedStaticMethod(
         function(cb) { cb(null, 'some-text', 'text/plain'); },
         METHOD_SIGNATURE,
@@ -3128,15 +2248,7 @@ describe('strong-remoting-rest', function() {
         .end(done);
     });
 
-    it('should send back Stream body', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should send back Stream body', function(done) {
       const method = givenSharedStaticMethod(
         function(cb) {
           const stream = new Readable();
@@ -3154,15 +2266,7 @@ describe('strong-remoting-rest', function() {
         .end(done);
     });
 
-    it('should fail for unsupported value type', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should fail for unsupported value type', function(done) {
       const method = givenSharedStaticMethod(
         function(cb) { cb(null, [1, 2]); },
         METHOD_SIGNATURE,
@@ -3180,15 +2284,7 @@ describe('strong-remoting-rest', function() {
     });
   });
 
-  it('returns correct error response body', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+  it('returns correct error response body', function(done) {
     function TestError() {
       Error.captureStackTrace(this, TestError);
       this.name = 'TestError';
@@ -3212,22 +2308,14 @@ describe('strong-remoting-rest', function() {
           aCustomProperty: 'a-custom-value',
         };
         for (const prop in expected) {
-          assert.strictEqual(result.body.error[prop], prop, expected[prop]);
+          expect(result.body.error[prop], prop).to.equal(expected[prop]);
         }
         expect(result.body.error.stack, 'stack').to.contain(__filename);
         done();
       });
   });
 
-  it('coerces array values passed to a string argument', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+  it('coerces array values passed to a string argument', function(done) {
     const method = givenSharedStaticMethod(
       function(arg, cb) { cb(null, arg); },
       {
@@ -3245,15 +2333,7 @@ describe('strong-remoting-rest', function() {
       });
   });
 
-  it('detects json type with charset definition', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+  it('detects json type with charset definition', function(done) {
     const method = givenSharedStaticMethod(
       function(arg, cb) { cb(null, arg); },
       {
@@ -3269,20 +2349,12 @@ describe('strong-remoting-rest', function() {
       .end(function(err, res) {
         if (err) return done(err);
         // JSON request was detected, sloppy coercion was not triggered
-        assert.strictEqual(res.body.arg, '123');
+        expect(res.body.arg).to.equal('123');
         done();
       });
   });
 
-  it('rejects multi-item array passed to a number argument', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+  it('rejects multi-item array passed to a number argument', function(done) {
     const method = givenSharedStaticMethod(
       function(arg, cb) { cb(); },
       {accepts: {arg: 'arg', type: 'number'}},
@@ -3293,15 +2365,8 @@ describe('strong-remoting-rest', function() {
       .end(done);
   });
 
-  it('rejects multi-item array passed to an integer argument', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+  it('rejects multi-item array passed to an integer argument',
+    function(done) {
       const method = givenSharedStaticMethod(
         function(arg, cb) { cb(); },
         {accepts: {arg: 'arg', type: 'integer'}},
@@ -3312,15 +2377,7 @@ describe('strong-remoting-rest', function() {
         .end(done);
     });
 
-  it('supports "Object" type string', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+  it('supports "Object" type string', function(done) {
     const method = givenSharedStaticMethod(
       function(arg, cb) { cb(); },
       {accepts: {arg: 'arg', type: 'Object'}},
@@ -3332,15 +2389,7 @@ describe('strong-remoting-rest', function() {
       .end(done);
   });
 
-  it('supports custom type string', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+  it('supports custom type string', function(done) {
     const method = givenSharedStaticMethod(
       function(arg, cb) { cb(); },
       {accepts: {arg: 'arg', type: 'Model'}},
@@ -3352,15 +2401,7 @@ describe('strong-remoting-rest', function() {
       .end(done);
   });
 
-  it('returns correct content-type in an empty XML response', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+  it('returns correct content-type in an empty XML response', function(done) {
     const method = givenSharedStaticMethod(
       function(arg, cb) { cb(); },
       {accepts: {arg: 'arg', type: 'Model'}},
@@ -3375,15 +2416,7 @@ describe('strong-remoting-rest', function() {
       });
   });
 
-  it('defaults content-type to application/json', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+  it('defaults content-type to application/json', function(done) {
     const method = givenSharedStaticMethod(
       function(arg, cb) { cb(); },
       {accepts: {arg: 'arg', type: 'Model'}},
@@ -3450,15 +2483,7 @@ describe('strong-remoting-rest', function() {
 
   describe('client', function() {
     describe('call of constructor method', function() {
-      it('should work', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should work', function(done) {
         const method = givenSharedStaticMethod(
           function greet(msg, cb) {
             cb(null, msg);
@@ -3477,15 +2502,7 @@ describe('strong-remoting-rest', function() {
         });
       });
 
-      it('should allow arguments in the path', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should allow arguments in the path', function(done) {
         const method = givenSharedStaticMethod(
           function bar(a, b, cb) {
             cb(null, a + b);
@@ -3507,15 +2524,7 @@ describe('strong-remoting-rest', function() {
         });
       });
 
-      it('should allow arguments in the query', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should allow arguments in the query', function(done) {
         const method = givenSharedStaticMethod(
           function bar(a, b, cb) {
             cb(null, a + b);
@@ -3537,15 +2546,7 @@ describe('strong-remoting-rest', function() {
         });
       });
 
-      it('should pass undefined if the argument is not supplied', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should pass undefined if the argument is not supplied', function(done) {
         let called = false;
         const method = givenSharedStaticMethod(
           function bar(a, cb) {
@@ -3567,15 +2568,7 @@ describe('strong-remoting-rest', function() {
         });
       });
 
-      it('should allow arguments in the body', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should allow arguments in the body', function(done) {
         const method = givenSharedStaticMethod(
           function bar(a, cb) {
             cb(null, a);
@@ -3600,15 +2593,7 @@ describe('strong-remoting-rest', function() {
         });
       });
 
-      it('should allow arguments in the body with date', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should allow arguments in the body with date', function(done) {
         const method = givenSharedStaticMethod(
           function bar(a, cb) {
             cb(null, a);
@@ -3630,15 +2615,7 @@ describe('strong-remoting-rest', function() {
         });
       });
 
-      it('should allow arguments in the form', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should allow arguments in the form', function(done) {
         const method = givenSharedStaticMethod(
           function bar(a, b, cb) {
             cb(null, a + b);
@@ -3660,15 +2637,7 @@ describe('strong-remoting-rest', function() {
         });
       });
 
-      it('should respond with correct args if returns has multiple args', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should respond with correct args if returns has multiple args', function(done) {
         const method = givenSharedStaticMethod(
           function(a, b, cb) {
             cb(null, a, b);
@@ -3694,15 +2663,7 @@ describe('strong-remoting-rest', function() {
       });
 
       describe('uncaught errors', function() {
-        it('should return 500 if an error object is thrown', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+        it('should return 500 if an error object is thrown', function(done) {
           const errMsg = 'an error';
           const method = givenSharedStaticMethod(
             function(a, b, cb) {
@@ -3718,15 +2679,7 @@ describe('strong-remoting-rest', function() {
         });
       });
 
-      it('should hounour class-level normalizeHttpPath', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should hounour class-level normalizeHttpPath', function(done) {
         const sharedClass = givenSharedClass('TestModel', {
           normalizeHttpPath: true,
         });
@@ -3746,20 +2699,12 @@ describe('strong-remoting-rest', function() {
 
         objects.invoke(sharedMethod.stringName, [], function(err, result) {
           if (err) return done(err);
-          assert.strictEqual(requestUrl, '/test-model/echo-message');
+          expect(requestUrl).to.equal('/test-model/echo-message');
           done();
         });
       });
 
-      it('should hounour app-wide normalizeHttpPath', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should hounour app-wide normalizeHttpPath', function(done) {
         const sharedClass = givenSharedClass('TestModel');
 
         const sharedMethod = givenSharedMethodOnClass(
@@ -3780,22 +2725,14 @@ describe('strong-remoting-rest', function() {
 
         objects.invoke(sharedMethod.stringName, [], function(err, result) {
           if (err) return done(err);
-          assert.strictEqual(requestUrl, '/test-model/echo-message');
+          expect(requestUrl).to.equal('/test-model/echo-message');
           done();
         });
       });
     });
 
     describe('call of prototype method', function() {
-      it('should work', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should work', function(done) {
         const method = givenSharedPrototypeMethod(
           function greet(msg, cb) {
             cb(null, this.id + ':' + msg);
@@ -3814,15 +2751,7 @@ describe('strong-remoting-rest', function() {
         });
       });
 
-      it('should allow arguments in the path', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should allow arguments in the path', function(done) {
         const method = givenSharedPrototypeMethod(
           function bar(a, b, cb) {
             cb(null, Number(this.id) + a + b);
@@ -3844,15 +2773,7 @@ describe('strong-remoting-rest', function() {
         });
       });
 
-      it('should allow arguments in the query', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should allow arguments in the query', function(done) {
         const method = givenSharedPrototypeMethod(
           function bar(a, b, cb) {
             cb(null, Number(this.id) + a + b);
@@ -3874,15 +2795,7 @@ describe('strong-remoting-rest', function() {
         });
       });
 
-      it('should pass undefined if the argument is not supplied', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should pass undefined if the argument is not supplied', function(done) {
         let called = false;
         const method = givenSharedPrototypeMethod(
           function bar(a, cb) {
@@ -3904,15 +2817,7 @@ describe('strong-remoting-rest', function() {
         });
       });
 
-      it('should allow arguments in the body', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should allow arguments in the body', function(done) {
         const method = givenSharedPrototypeMethod(
           function bar(a, cb) {
             cb(null, a);
@@ -3937,15 +2842,7 @@ describe('strong-remoting-rest', function() {
         });
       });
 
-      it('should allow arguments in the body with date', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should allow arguments in the body with date', function(done) {
         const method = givenSharedPrototypeMethod(
           function bar(a, cb) {
             cb(null, a);
@@ -3967,15 +2864,7 @@ describe('strong-remoting-rest', function() {
         });
       });
 
-      it('should allow arguments in the form', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should allow arguments in the form', function(done) {
         const method = givenSharedPrototypeMethod(
           function bar(a, b, cb) {
             cb(null, Number(this.id) + a + b);
@@ -3997,15 +2886,7 @@ describe('strong-remoting-rest', function() {
         });
       });
 
-      it('should respond with correct args if returns has multiple args', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+      it('should respond with correct args if returns has multiple args', function(done) {
         const method = givenSharedPrototypeMethod(
           function(a, b, cb) {
             cb(null, this.id, a, b);
@@ -4033,15 +2914,7 @@ describe('strong-remoting-rest', function() {
       });
 
       describe('uncaught errors', function() {
-        it('should return 500 if an error object is thrown', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+        it('should return 500 if an error object is thrown', function(done) {
           const errMsg = 'an error';
           const method = givenSharedPrototypeMethod(
             function(a, b, cb) {
@@ -4117,15 +2990,8 @@ describe('strong-remoting-rest', function() {
     };
   }
 
-  it('should skip the super class and only expose user defined remote methods', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+  it('should skip the super class and only expose user defined remote methods',
+    function(done) {
       function base() {
       }
 
@@ -4154,20 +3020,12 @@ describe('strong-remoting-rest', function() {
 
       expect(methodNames).not.to.contain('super_');
       expect(methodNames).to.contain('foo.bar');
-      assert.strictEqual(methodNames.length, 1);
+      expect(methodNames.length).to.equal(1);
       done();
     });
 
   describe('afterError hook', function() {
-    it('should be called when the method fails', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should be called when the method fails', function(done) {
       const method = givenSharedStaticMethod(function(cb) {
         cb(TEST_ERROR);
       });
@@ -4175,15 +3033,7 @@ describe('strong-remoting-rest', function() {
       verifyErrorHookIsCalled(method, TEST_ERROR, done);
     });
 
-    it('should be called when a "before" hook fails', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should be called when a "before" hook fails', function(done) {
       const method = givenSharedStaticMethod();
 
       objects.before(method.name, function(ctx, next) {
@@ -4193,15 +3043,7 @@ describe('strong-remoting-rest', function() {
       verifyErrorHookIsCalled(method, TEST_ERROR, done);
     });
 
-    it('should be called when an "after" hook fails', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should be called when an "after" hook fails', function(done) {
       const method = givenSharedStaticMethod();
 
       objects.after(method.name, function(ctx, next) {
@@ -4211,15 +3053,7 @@ describe('strong-remoting-rest', function() {
       verifyErrorHookIsCalled(method, TEST_ERROR, done);
     });
 
-    it('can replace the error object', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('can replace the error object', function(done) {
       const method = givenSharedStaticMethod(function(cb) {
         cb(new Error(
           'error from the method, should have been shadowed by the hook',
@@ -4233,20 +3067,12 @@ describe('strong-remoting-rest', function() {
         .expect(500)
         .end(function(err, res) {
           if (err) return done(err);
-          assert.strictEqual(res.body.error.message, 'error from the hook');
+          expect(res.body.error.message).to.equal('error from the hook');
           done();
         });
     });
 
-    it('is not called on success', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('is not called on success', function(done) {
       let hookCalled = false;
       const method = givenSharedStaticMethod(function(cb) {
         cb();
@@ -4259,7 +3085,7 @@ describe('strong-remoting-rest', function() {
 
       json(method.url).end(function(err) {
         if (err) return done(err);
-        assert.strictEqual(hookCalled, 'hookCalled', false);
+        expect(hookCalled, 'hookCalled').to.equal(false);
         done();
       });
     });

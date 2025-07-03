@@ -5,10 +5,6 @@
 
 'use strict';
 
-// Native Node.js test imports
-const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
-const assert = require('node:assert');
-
 const expect = require('./helpers/expect');
 const express = require('express');
 const RemoteObjects = require('../');
@@ -38,15 +34,7 @@ describe('authorization hook', function() {
   });
 
   describe('given a remotes object with an authorization hook', function() {
-    it('should be called when a remote method is invoked', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should be called when a remote method is invoked', function(done) {
       const callStack = [];
       remotes.authorization = function(ctx, next) {
         callStack.push('authorization');
@@ -62,7 +50,7 @@ describe('authorization hook', function() {
         function(err, session) {
           try {
             expect(err).to.not.exist;
-            assert.strictEqual(session.userId, 123);
+            expect(session.userId).to.equal(123);
             //                        vvvvvvvv - local before hook
             expect(callStack).to.eql(['before', 'authorization', 'before']);
             done();

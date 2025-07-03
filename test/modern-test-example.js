@@ -58,9 +58,11 @@ describe('Modern Test Example', () => {
 
   describe('Async testing patterns', () => {
     it('should handle async/await tests', async () => {
-      // Mock the original invoke for testing
+      // Mock the adapter connection check and original invoke for testing
+      remotes.serverAdapter = { invoke: () => {} }; // Mock adapter
       remotes._original_invoke = function(method, ctorArgs, args, callback) {
-        setTimeout(() => callback(null, 'async result'), 10);
+        // Call callback immediately without setTimeout to avoid timing issues
+        callback(null, 'async result');
       };
 
       const result = await remotes.invoke('test.method', [], []);
@@ -68,9 +70,11 @@ describe('Modern Test Example', () => {
     });
 
     it('should handle Promise rejection', async () => {
-      // Mock the original invoke to test error handling
+      // Mock the adapter connection check and original invoke to test error handling
+      remotes.serverAdapter = { invoke: () => {} }; // Mock adapter
       remotes._original_invoke = function(method, ctorArgs, args, callback) {
-        setTimeout(() => callback(new Error('Test error')), 10);
+        // Call callback immediately without setTimeout to avoid timing issues
+        callback(new Error('Test error'));
       };
 
       try {
@@ -82,22 +86,23 @@ describe('Modern Test Example', () => {
       }
     });
 
-    it('should handle callback-style tests with done pattern', (t, done) => {
+    it('should handle callback-style tests with done pattern', (done) => {
       // For tests that need the done callback pattern
-      const testDone = done || (() => {});
-      
-      // Mock the original invoke
+
+      // Mock the adapter connection check and original invoke
+      remotes.serverAdapter = { invoke: () => {} }; // Mock adapter
       remotes._original_invoke = function(method, ctorArgs, args, callback) {
-        setTimeout(() => callback(null, 'callback result'), 10);
+        // Call callback immediately without setTimeout to avoid timing issues
+        callback(null, 'callback result');
       };
 
       remotes.invoke('test.method', [], [], (err, result) => {
         try {
           expect(err).to.be.null;
           expect(result).to.equal('callback result');
-          testDone();
+          done();
         } catch (testError) {
-          testDone(testError);
+          done(testError);
         }
       });
     });

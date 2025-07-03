@@ -27,12 +27,11 @@ User.sharedCtor.http = [
 
 const login = User.login = function(credentials, callback) {
   debug('login with credentials: %j', credentials);
-  setTimeout(function() {
-    if (!credentials.password) {
-      return callback(new Error('password required'));
-    }
-    callback(null, {userId: 123});
-  }, 0);
+  // Remove setTimeout to avoid timing issues
+  if (!credentials.password) {
+    return callback(new Error('password required'));
+  }
+  callback(null, {userId: 123});
 };
 login.shared = true;
 login.accepts = {arg: 'credentials', type: 'object'};

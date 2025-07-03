@@ -5,11 +5,7 @@
 
 'use strict';
 
-// Native Node.js test imports
-const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
-const assert = require('node:assert');
-
-const { expect } = require('../test-config'); // Use native expect interface
+const expect = require('chai').expect;
 const httpClient = require('../lib/http-client');
 const { HttpClient } = require('../lib/http-client');
 const express = require('express');
@@ -61,131 +57,75 @@ describe('HttpClient', function() {
   });
 
   describe('Request-compatible interface', function() {
-    it('should make GET request with callback', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should make GET request with callback', function(done) {
       httpClient(`${baseUrl}/test`, (err, res, body) => {
         expect(err).to.be.null;
-        assert.strictEqual(res.statusCode, 200);
+        expect(res.statusCode).to.equal(200);
         expect(body).to.deep.equal({ message: 'GET success', query: {} });
         done();
       });
     });
 
-    it('should make GET request with options object', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should make GET request with options object', function(done) {
       httpClient({
         url: `${baseUrl}/test`,
         method: 'GET',
         qs: { param: 'value' }
       }, (err, res, body) => {
         expect(err).to.be.null;
-        assert.strictEqual(res.statusCode, 200);
+        expect(res.statusCode).to.equal(200);
         expect(body.query).to.deep.equal({ param: 'value' });
         done();
       });
     });
 
-    it('should make POST request with JSON body', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should make POST request with JSON body', function(done) {
       httpClient({
         url: `${baseUrl}/test`,
         method: 'POST',
         json: { test: 'data' }
       }, (err, res, body) => {
         expect(err).to.be.null;
-        assert.strictEqual(res.statusCode, 200);
+        expect(res.statusCode).to.equal(200);
         expect(body.body).to.deep.equal({ test: 'data' });
         done();
       });
     });
 
-    it('should handle authentication with bearer token', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should handle authentication with bearer token', function(done) {
       httpClient({
         url: `${baseUrl}/auth`,
         auth: { bearer: 'test-token' }
       }, (err, res, body) => {
         expect(err).to.be.null;
-        assert.strictEqual(res.statusCode, 200);
-        assert.strictEqual(body.auth, 'Bearer test-token');
+        expect(res.statusCode).to.equal(200);
+        expect(body.auth).to.equal('Bearer test-token');
         done();
       });
     });
 
-    it('should handle authentication with username/password', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should handle authentication with username/password', function(done) {
       httpClient({
         url: `${baseUrl}/auth`,
         auth: { username: 'user', password: 'pass' }
       }, (err, res, body) => {
         expect(err).to.be.null;
-        assert.strictEqual(res.statusCode, 200);
+        expect(res.statusCode).to.equal(200);
         expect(body.auth).to.match(/^Basic /);
         done();
       });
     });
 
-    it('should handle HTTP error responses', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should handle HTTP error responses', function(done) {
       httpClient(`${baseUrl}/error`, (err, res, body) => {
         expect(err).to.be.null; // request package doesn't throw on HTTP errors
-        assert.strictEqual(res.statusCode, 500);
-        assert.strictEqual(body.error.message, 'Test error');
+        expect(res.statusCode).to.equal(500);
+        expect(body.error.message).to.equal('Test error');
         done();
       });
     });
 
-    it('should handle network errors', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should handle network errors', function(done) {
       this.timeout(5000); // Increase timeout for network error test
       // Use a valid URL format but unreachable port to trigger ECONNREFUSED
       httpClient('http://127.0.0.1:99999/nonexistent', (err, res, body) => {
@@ -204,7 +144,7 @@ describe('HttpClient', function() {
   describe('Promise interface', function() {
     it('should return promise when no callback provided', async function() {
       const response = await httpClient(`${baseUrl}/test`);
-      assert.strictEqual(response.statusCode, 200);
+      expect(response.statusCode).to.equal(200);
       expect(response.body).to.deep.equal({ message: 'GET success', query: {} });
     });
 
@@ -219,15 +159,7 @@ describe('HttpClient', function() {
   });
 
   describe('Request compatibility', function() {
-    it('should maintain exact response structure', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should maintain exact response structure', function(done) {
       httpClient(`${baseUrl}/test`, (err, res, body) => {
         expect(err).to.be.null;
         
@@ -245,35 +177,19 @@ describe('HttpClient', function() {
       });
     });
 
-    it('should handle json: true option', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should handle json: true option', function(done) {
       httpClient({
         url: `${baseUrl}/test`,
         json: true
       }, (err, res, body) => {
         expect(err).to.be.null;
-        assert.strictEqual(typeof body, 'object');
-        assert.strictEqual(body.message, 'GET success');
+        expect(typeof body).to.equal('object');
+        expect(body.message).to.equal('GET success');
         done();
       });
     });
 
-    it('should preserve all headers', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should preserve all headers', function(done) {
       httpClient({
         url: `${baseUrl}/test`,
         headers: {
@@ -282,22 +198,14 @@ describe('HttpClient', function() {
         }
       }, (err, res, body) => {
         expect(err).to.be.null;
-        assert.strictEqual(res.statusCode, 200);
+        expect(res.statusCode).to.equal(200);
         done();
       });
     });
   });
 
   describe('Error handling compatibility', function() {
-    it('should handle SyntaxError for 204 responses', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should handle SyntaxError for 204 responses', function(done) {
       // This test simulates the specific error handling in http-invocation.js
       // where SyntaxError is caught and ignored for 204 responses
       
@@ -308,23 +216,15 @@ describe('HttpClient', function() {
 
       httpClient(`${baseUrl}/empty-204`, (err, res, body) => {
         expect(err).to.be.null;
-        assert.strictEqual(res.statusCode, 204);
+        expect(res.statusCode).to.equal(204);
         done();
       });
     });
 
-    it('should preserve error properties for HTTP errors', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should preserve error properties for HTTP errors', function(done) {
       httpClient(`${baseUrl}/error`, (err, res, body) => {
         expect(err).to.be.null; // HTTP errors don't throw in request package
-        assert.strictEqual(res.statusCode, 500);
+        expect(res.statusCode).to.equal(500);
         expect(body).to.have.property('error');
         done();
       });
@@ -334,7 +234,7 @@ describe('HttpClient', function() {
   describe('HttpClient class', function() {
     it('should create instance with default options', function() {
       const client = new HttpClient({ timeout: 5000 });
-      assert.strictEqual(client.defaultOptions.timeout, 5000);
+      expect(client.defaultOptions.timeout).to.equal(5000);
     });
 
     it('should handle axios dependency gracefully', function() {
@@ -346,36 +246,20 @@ describe('HttpClient', function() {
   describe('Edge cases and regression tests', function() {
     it('should handle undefined callback gracefully', async function() {
       const response = await httpClient(`${baseUrl}/test`, undefined);
-      assert.strictEqual(response.statusCode, 200);
+      expect(response.statusCode).to.equal(200);
     });
 
-    it('should handle empty options object', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should handle empty options object', function(done) {
       httpClient({}, (err, res, body) => {
         expect(err).to.be.an('error'); // Should fail due to missing URL
         done();
       });
     });
 
-    it('should preserve query parameters in URL', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
+    it('should preserve query parameters in URL', function(done) {
       httpClient(`${baseUrl}/test?existing=param`, (err, res, body) => {
         expect(err).to.be.null;
-        assert.strictEqual(body.query.existing, 'param');
+        expect(body.query.existing).to.equal('param');
         done();
       });
     });

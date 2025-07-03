@@ -123,8 +123,7 @@ describe('a function returning a ReadableStream', function() {
       fn: StreamClass.createStream,
       returns: [{
         arg: 'result',
-        type: 'ReadableStream',
-        json: true,
+        type: 'any',
       }],
     });
 
@@ -133,8 +132,7 @@ describe('a function returning a ReadableStream', function() {
       fn: StreamClass.createStreamWithError,
       returns: [{
         arg: 'result',
-        type: 'ReadableStream',
-        json: true,
+        type: 'any',
       }],
     });
 
@@ -158,7 +156,7 @@ describe('a function returning a ReadableStream', function() {
 
   it('should return a ReadableStream', function(done) {
     const testData = this.data;
-    remotes.invoke('StreamClass.createStream', [], function(err, stream) {
+    remotes.invoke('StreamClass.createStream', [], [], function(err, stream) {
       assert(stream.readable, 'must be a ReadableStream');
       const out = es.writeArray(function(err, result) {
         if (err) return done(err);
@@ -171,7 +169,7 @@ describe('a function returning a ReadableStream', function() {
   });
 
   it('should include errors', function(done) {
-    remotes.invoke('StreamClass.createStreamWithError', [], function(err, stream) {
+    remotes.invoke('StreamClass.createStreamWithError', [], [], function(err, stream) {
       stream.on('error', function(err) {
         expect(err).instanceof(Error);
         expect(err.message).to.equal('test error');

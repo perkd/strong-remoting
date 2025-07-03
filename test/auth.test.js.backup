@@ -5,10 +5,6 @@
 
 'use strict';
 
-// Native Node.js test imports
-const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
-const assert = require('node:assert');
-
 const auth = require('http-auth');
 const crypto = require('crypto');
 const expect = require('./helpers/expect');
@@ -108,8 +104,8 @@ describe('support for HTTP Authentication', function() {
     return function(done) {
       invokeRemote(server.address().port, path, credentials,
         function(err, session) {
-          assert.strictEqual(err, null, 'Expected no error');
-          assert.strictEqual(session.userId, 123);
+          expect(err).to.not.exist();
+          expect(session.userId).to.equal(123);
           done();
         });
     };
