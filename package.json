@@ -20,6 +20,10 @@
     "security:audit": "npm audit --audit-level=moderate",
     "security:check": "npm audit --audit-level=high",
     "test": "c8 nyc mocha",
+    "test:modern": "node scripts/test-runner.js",
+    "test:native": "node --test --test-reporter=spec test/**/*.test.js",
+    "test:watch": "node scripts/test-runner.js --watch",
+    "test:coverage": "c8 --reporter=text --reporter=html node --test test/**/*.test.js",
     "test:security": "npm run security:audit && npm test",
     "posttest": "npm run lint",
     "reinstall": "(rm -rf node_modules/ || true) && (rm yarn.lock || true) && yarn install"
@@ -54,6 +58,7 @@
     "eslint-config-loopback": "^13.1.0",
     "event-stream": "^4.0.1",
     "eventsource": "1.1.2",
+    "glob": "^11.0.3",
     "http-auth": "3.2.4",
     "mocha": "^11.7.1",
     "nyc": "^17.1.0",
