@@ -26,14 +26,14 @@
 
 'use strict';
 
-const extend = require('util')._extend;
+// Removed deprecated util._extend - using Object.assign() instead
 
 exports.createSharedClass = function createSharedClass(config) {
   // create a class that can be remoted
   const SharedClass = function(id) {
     this.id = id;
   };
-  extend(SharedClass, config);
+  Object.assign(SharedClass, config);
 
   SharedClass.shared = true;
 
@@ -43,7 +43,7 @@ exports.createSharedClass = function createSharedClass(config) {
     this._sharedCtor(id, cb);
   };
 
-  extend(SharedClass.sharedCtor, {
+  Object.assign(SharedClass.sharedCtor, {
     shared: true,
     accepts: [{arg: 'id', type: 'any', http: {source: 'path'}}],
     http: {path: '/:id'},
