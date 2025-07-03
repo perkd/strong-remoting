@@ -13,10 +13,14 @@
     "node": ">=20"
   },
   "scripts": {
-    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "coverage": "c8 report --reporter=text-lcov",
+    "coverage:html": "c8 report --reporter=html",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "nyc mocha",
+    "security:audit": "npm audit --audit-level=moderate",
+    "security:check": "npm audit --audit-level=high",
+    "test": "c8 nyc mocha",
+    "test:security": "npm run security:audit && npm test",
     "posttest": "npm run lint",
     "reinstall": "(rm -rf node_modules/ || true) && (rm yarn.lock || true) && yarn install"
   },
