@@ -36,16 +36,15 @@
     "loopback-phase": "^3.4.0",
     "mux-demux": "^3.7.9",
     "qs": "^6.14.0",
-    "request": "^2.88.2",
     "sse": "0.0.8",
     "strong-error-handler": "3.5.0",
     "strong-globalize": "6.0.6",
     "traverse": "^0.6.11",
-    "xml2js": "0.4.23"
+    "xml2js": "^0.6.2"
   },
   "devDependencies": {
+    "c8": "^10.1.3",
     "chai": "4.5.0",
-    "coveralls": "^3.1.1",
     "dirty-chai": "^2.0.1",
     "eslint": "^9.30.1",
     "eslint-config-loopback": "^13.1.0",
