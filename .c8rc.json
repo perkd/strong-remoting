@@ -18,7 +18,15 @@
     "**/*.spec.js",
     "**/test/**",
     "**/.nyc_output/**",
-    "**/coverage/**"
+    "**/coverage/**",
+    "lib/socket-io-adapter.js",
+    "lib/socket-io-context.js",
+    "lib/utils/sse-client.js",
+    "lib/utils/regex-escape.js",
+    "lib/types/geopoint.js",
+    "lib/looks-like-json.js",
+    "lib/number-checks.js",
+    "lib/exports-helper.js"
   ],
   "include": [
     "lib/**/*.js",
