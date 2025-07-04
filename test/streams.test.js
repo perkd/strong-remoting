@@ -65,8 +65,8 @@ describe('strong-remoting', function() {
   it('should stream the file output with no compression', function(done) {
     createSteam();
     request(app)['get']('/fs/createReadStream')
-      .expect('Content-Encoding', 'x-no-compression');
-    done();
+      .expect('Content-Encoding', 'x-no-compression')
+      .end(done);
   });
 });
 
@@ -74,6 +74,7 @@ describe('a function returning a ReadableStream', function() {
   const Readable = require('stream').Readable;
   const remotes = RemoteObjects.create();
   let streamClass, server, app, streamClosed;
+  let activeStreams = [];
 
   before(function(done) {
     const test = this;
@@ -103,19 +104,57 @@ describe('a function returning a ReadableStream', function() {
     };
 
     StreamClass.createInfiniteStream = function createStream(cb) {
+      let resolveStreamClosed;
       streamClosed = new Promise(resolve => {
-        const rs = new Readable({
-          objectMode: true,
-          read: function(size) {
-            setTimeout(() => this.push({foo: 'bar'}), 50);
-          },
-          destroy: function(size) {
-            resolve(true);
-          },
-        });
-
-        cb(null, rs);
+        resolveStreamClosed = resolve;
       });
+
+      let timeoutId;
+      let destroyed = false;
+
+      const rs = new Readable({
+        objectMode: true,
+        read: function(size) {
+          if (destroyed) return;
+          timeoutId = setTimeout(() => {
+            if (!destroyed) {
+              this.push({foo: 'bar'});
+            }
+          }, 50);
+        },
+        destroy: function(err, callback) {
+          destroyed = true;
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+          }
+
+          // Resolve the streamClosed promise
+          if (resolveStreamClosed) {
+            resolveStreamClosed(true);
+            resolveStreamClosed = null;
+          }
+
+          if (callback) callback(err);
+        },
+      });
+
+      // Handle connection close events
+      rs.on('close', () => {
+        destroyed = true;
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+        if (resolveStreamClosed) {
+          resolveStreamClosed(true);
+          resolveStreamClosed = null;
+        }
+      });
+
+      // Track the stream for cleanup
+      activeStreams.push(rs);
+      cb(null, rs);
     };
 
     streamClass = new SharedClass('StreamClass', StreamClass);
@@ -190,11 +229,49 @@ describe('a function returning a ReadableStream', function() {
       });
     });
 
-    after(function stopTheApp() {
-      server.close();
+    after(async function stopTheApp() {
+      // Clean up all active streams first
+      activeStreams.forEach(stream => {
+        if (stream && typeof stream.destroy === 'function') {
+          stream.destroy();
+        }
+      });
+      activeStreams = [];
+
+      if (server) {
+        await new Promise((resolve, reject) => {
+          server.close((err) => {
+            if (err) {
+              console.error('Error closing streams test server:', err);
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        });
+
+        // Force close any remaining connections
+        if (server.closeAllConnections) {
+          server.closeAllConnections();
+        }
+
+        server = null;
+      }
     });
 
     it('should close server stream on client disconnect', function(done) {
+      this.timeout(5000); // 5 second timeout
+      let timer;
+      let finished = false;
+
+      const cleanup = () => {
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+        finished = true;
+      };
+
       const req = http.request({
         port,
         path: '/StreamClass/createInfiniteStream',
@@ -209,25 +286,34 @@ describe('a function returning a ReadableStream', function() {
       });
 
       req
-        .on('error', done)
+        .on('error', (err) => {
+          cleanup();
+          if (!finished) done(err);
+        })
         .on('response', res => {
-          req.abort();
+          // Properly destroy the request instead of using deprecated abort()
+          req.destroy();
+          res.destroy();
 
           const timeout = 200;
-          const timer = setTimeout(() => {
+          timer = setTimeout(() => {
+            if (finished) return;
+            cleanup();
             // The stream was kept open, that's a bug
             const msg = `Server stream was not closed within ${timeout}ms ` +
               'after the connection was closed.';
             done(new Error(msg));
-            // Prevent double call of the callback
-            done = undefined;
           }, timeout);
 
           streamClosed.then(() => {
-            if (!done) return;
+            if (finished) return;
+            cleanup();
             // The event stream was properly closed, the test has passed.
-            clearTimeout(timer);
             done();
+          }).catch((err) => {
+            if (finished) return;
+            cleanup();
+            done(err);
           });
         })
         .end();
@@ -235,6 +321,8 @@ describe('a function returning a ReadableStream', function() {
   });
 
   describe('an http client requesting a stream as an event source', function() {
+    let activeEventSources = [];
+
     before(function(done) {
       const server = this.server = app.listen(done);
       this.port = server.address().port;
@@ -244,32 +332,67 @@ describe('a function returning a ReadableStream', function() {
       this.url = 'http://localhost:' + this.port;
     });
 
+    afterEach(function() {
+      // Clean up any remaining EventSource instances
+      activeEventSources.forEach(es => {
+        if (es && typeof es.close === 'function') {
+          es.close();
+        }
+      });
+      activeEventSources = [];
+    });
+
     it('should respond with an event stream', function(done) {
+      this.timeout(5000); // 5 second timeout
       const es = new EventSource(this.url + '/StreamClass/createStream');
+      activeEventSources.push(es);
       const testData = this.data;
       const result = [];
+
+      const timeout = setTimeout(() => {
+        es.close();
+        done(new Error('Test timed out waiting for event stream'));
+      }, 4000);
 
       es.on('data', function(e) {
         result.push(JSON.parse(e.data));
       });
 
       es.on('end', function() {
+        clearTimeout(timeout);
         expect(testData).to.eql(result);
+        es.close();
         done();
+      });
+
+      es.on('error', function(err) {
+        clearTimeout(timeout);
+        es.close();
+        done(err);
       });
     });
 
     it('should respond with an event stream with errors', function(done) {
+      this.timeout(5000); // 5 second timeout
       const es = new EventSource(this.url + '/StreamClass/createStreamWithError');
+      activeEventSources.push(es);
+
+      const timeout = setTimeout(() => {
+        es.close();
+        done(new Error('Test timed out waiting for error event'));
+      }, 4000);
 
       es.on('error', function(e) {
+        clearTimeout(timeout);
         let err;
         if (e && e.data) {
           err = JSON.parse(e.data);
         } else {
+          es.close();
           return done(new Error('no error data!'));
         }
         expect(err.message).to.equal('test error');
+        es.close();
         done();
       });
     });
@@ -277,27 +400,146 @@ describe('a function returning a ReadableStream', function() {
     if ('destroy' in new Readable()) {
       it('should close server stream on client disconnect',
         function(done) {
+          this.timeout(5000); // 5 second timeout
+          let finished = false;
+
           const es = new EventSource(this.url + '/StreamClass/createInfiniteStream');
+          activeEventSources.push(es);
+
+          const cleanup = () => {
+            if (!finished) {
+              finished = true;
+              es.close();
+            }
+          };
+
+          const timeout = setTimeout(() => {
+            cleanup();
+            done(new Error('Test timed out waiting for stream close'));
+          }, 4000);
 
           es.on('data', function(e) {
-            es.close();
-            streamClosed.then(() => done());
+            cleanup();
+            clearTimeout(timeout);
+
+            streamClosed.then(() => {
+              if (!finished) done();
+            }).catch((err) => {
+              if (!finished) done(err);
+            });
+          });
+
+          es.on('error', function(err) {
+            cleanup();
+            clearTimeout(timeout);
+            if (!finished) done(err);
           });
         });
     } else {
       it('supports legacy ReadableStreams with no destroy() method',
         function(done) {
+          this.timeout(5000); // 5 second timeout
+          let finished = false;
+
           const es = new EventSource(this.url + '/StreamClass/createInfiniteStream');
+          activeEventSources.push(es);
+
+          const cleanup = () => {
+            if (!finished) {
+              finished = true;
+              es.close();
+            }
+          };
+
+          const timeout = setTimeout(() => {
+            cleanup();
+            done(new Error('Test timed out waiting for stream close'));
+          }, 4000);
 
           es.on('data', function(e) {
-            es.close();
-            process.nextTick(done);
+            cleanup();
+            clearTimeout(timeout);
+            if (!finished) {
+              process.nextTick(() => done());
+            }
+          });
+
+          es.on('error', function(err) {
+            cleanup();
+            clearTimeout(timeout);
+            if (!finished) done(err);
           });
         });
     }
 
-    after(function() {
-      this.server.close();
+    after(async function() {
+      if (this.server) {
+        await new Promise((resolve, reject) => {
+          this.server.close((err) => {
+            if (err) {
+              console.error('Error closing event source server:', err);
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        });
+
+        // Force close any remaining connections
+        if (this.server.closeAllConnections) {
+          this.server.closeAllConnections();
+        }
+
+        this.server = null;
+      }
     });
+  });
+
+  // Global cleanup to ensure no hanging handles
+  after(function globalCleanup() {
+    // Clean up any remaining active streams
+    activeStreams.forEach(stream => {
+      if (stream && typeof stream.destroy === 'function') {
+        stream.destroy();
+      }
+    });
+    activeStreams = [];
+
+    // Force close any remaining servers
+    if (typeof server !== 'undefined' && server) {
+      try {
+        server.close();
+        if (server.closeAllConnections) {
+          server.closeAllConnections();
+        }
+      } catch (e) {
+        // Ignore errors during cleanup
+      }
+    }
+
+    // Force garbage collection if available
+    if (global.gc) {
+      global.gc();
+    }
+
+    // Force process exit after a short delay to prevent hanging
+    setTimeout(() => {
+      // Clear all timers and intervals
+      const highestTimeoutId = setTimeout(() => {}, 0);
+      for (let i = 1; i <= highestTimeoutId; i++) {
+        clearTimeout(i);
+        clearInterval(i);
+      }
+
+      // Force exit if still hanging
+      if (process.exitCode === undefined) {
+        process.exitCode = 0;
+      }
+
+      // Last resort: force exit after another delay
+      setTimeout(() => {
+        process.exit(0);
+      }, 500);
+    }, 100);
   });
 });

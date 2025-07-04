@@ -6,7 +6,7 @@
 'use strict';
 
 const debug = require('debug')('test');
-const expect = require('chai').expect;
+const { expect } = require('../test-config'); // Use native expect interface
 const util = require('util');
 const format = util.format;
 // Use Object.assign() instead of deprecated util._extend
@@ -59,9 +59,19 @@ module.exports = function createJsonBodyContext(ctx) {
       const niceExpectation = ctx.prettyExpectation(expectedValue);
       const testName = format('coerces %s to %s', niceInput, niceExpectation);
 
-      it(testName, function(done) {
-        ctx.runtime.currentInput = niceInput;
-        testCoercion(argSpec, requestBody, expectedValue, done);
+      it(testName, function(t) {
+        return new Promise((resolve, reject) => {
+          const done = (error) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve();
+            }
+          };
+
+          ctx.runtime.currentInput = niceInput;
+          testCoercion(argSpec, requestBody, expectedValue, done);
+        });
       });
     });
   }

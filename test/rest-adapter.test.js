@@ -10,7 +10,8 @@ const { describe, it, before, after, beforeEach, afterEach } = require('node:tes
 const assert = require('node:assert');
 const { expect } = require('./test-config'); // Use native expect interface
 const HttpInvocation = require('../lib/http-invocation');
-const extend = require('util')._extend;
+// Use Object.assign() instead of deprecated util._extend
+const extend = Object.assign;
 const inherits = require('util').inherits;
 const RemoteObjects = require('../');
 const RestAdapter = require('../lib/rest-adapter');

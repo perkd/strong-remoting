@@ -40,8 +40,39 @@ describe('phase handlers', function() {
   });
 
   afterEach(async function teardownServer() {
+    // Clean up client connections first
+    if (clientRemotes) {
+      // Clear auth to prevent state leakage
+      clientRemotes.auth = null;
+
+      // Properly disconnect and clean up HTTP connections
+      if (clientRemotes.disconnect) {
+        clientRemotes.disconnect();
+      }
+
+      // Force cleanup of any remaining HTTP connections
+      if (clientRemotes._adapter && clientRemotes._adapter.client) {
+        const client = clientRemotes._adapter.client;
+        if (client.destroy) {
+          client.destroy();
+        }
+      }
+    }
+
+    // Close server
     await new Promise((resolve) => {
-      server.close(resolve);
+      server.close((err) => {
+        if (err) {
+          console.error('Error closing phase-handlers test server:', err);
+        }
+
+        // Force close any remaining connections
+        if (server.closeAllConnections) {
+          server.closeAllConnections();
+        }
+
+        resolve();
+      });
     });
   });
 

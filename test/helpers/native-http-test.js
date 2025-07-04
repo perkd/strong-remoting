@@ -82,6 +82,12 @@ class TestRequest {
     return this;
   }
 
+  options(path) {
+    this.method = 'OPTIONS';
+    this.path = path;
+    return this;
+  }
+
   set(header, value) {
     if (typeof header === 'object') {
       Object.assign(this.headers, header);
@@ -254,12 +260,13 @@ class TestRequest {
             `Expected status ${expectation.value}, got ${response.status}`);
           break;
         case 'header':
+          const actualHeaderValue = response.headers[expectation.header.toLowerCase()];
           if (expectation.value instanceof RegExp) {
-            assert(expectation.value.test(response.headers[expectation.header.toLowerCase()]),
-              `Expected header ${expectation.header} to match ${expectation.value}`);
+            assert(expectation.value.test(actualHeaderValue),
+              `Expected header ${expectation.header} to match ${expectation.value}, but got: ${actualHeaderValue}`);
           } else {
-            assert.strictEqual(response.headers[expectation.header.toLowerCase()], expectation.value,
-              `Expected header ${expectation.header} to be ${expectation.value}`);
+            assert.strictEqual(actualHeaderValue, expectation.value,
+              `Expected header ${expectation.header} to be ${expectation.value}, but got: ${actualHeaderValue}`);
           }
           break;
         case 'body':

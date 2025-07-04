@@ -70,16 +70,56 @@ describe('support for HTTP Authentication', function() {
     remotes.exports.User = User;
   });
 
-  afterEach(function() {
+  afterEach(async function() {
     // Clean up any test-specific state
-    if (remotes && remotes.disconnect) {
-      remotes.disconnect();
+    if (remotes) {
+      // Clear auth to prevent state leakage
+      remotes.auth = null;
+      // Clear the server adapter to prevent reuse
+      remotes.serverAdapter = null;
+
+      // Properly disconnect and clean up HTTP connections
+      if (remotes.disconnect) {
+        remotes.disconnect();
+      }
+
+      // Force cleanup of any remaining HTTP connections
+      if (remotes._adapter && remotes._adapter.client) {
+        const client = remotes._adapter.client;
+        if (client.destroy) {
+          client.destroy();
+        }
+      }
     }
     remotes = null;
+
+    // Give a small delay to allow connections to fully close
+    await new Promise(resolve => setTimeout(resolve, 10));
   });
 
-  after(function teardownServer(done) {
-    server.close(done);
+  after(async function teardownServer() {
+    // Give a small delay to allow any pending requests to complete
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    if (server) {
+      await new Promise((resolve, reject) => {
+        server.close((err) => {
+          if (err) {
+            console.error('Error closing server:', err);
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+
+      // Force close any remaining connections
+      if (server.closeAllConnections) {
+        server.closeAllConnections();
+      }
+
+      server = null;
+    }
   });
 
   describe('when no authentication is required', function() {
@@ -127,8 +167,11 @@ describe('support for HTTP Authentication', function() {
 
   function succeeds(path, credentials) {
     return function(done) {
+      let callbackCalled = false;
       invokeRemote(server.address().port, path, credentials,
         function(err, session) {
+          if (callbackCalled) return; // Prevent multiple calls
+          callbackCalled = true;
           assert.strictEqual(err, null, 'Expected no error');
           assert.strictEqual(session.userId, 123);
           done();
@@ -138,8 +181,11 @@ describe('support for HTTP Authentication', function() {
 
   function fails(path, credentials) {
     return function(done) {
+      let callbackCalled = false;
       invokeRemote(server.address().port, path, credentials,
         function(err, session) {
+          if (callbackCalled) return; // Prevent multiple calls
+          callbackCalled = true;
           expect(err).to.match(/401/);
           done();
         });

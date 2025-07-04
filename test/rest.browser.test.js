@@ -8,11 +8,10 @@
 // Native Node.js test imports
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
-const extend = require('util')._extend;
-const inherits = require('util').inherits;
+// Use Object.assign() instead of deprecated util._extend
+const extend = Object.assign;
 const RemoteObjects = require('../');
 const express = require('express');
-const request = require('./helpers/native-http-test'); // Native HTTP testing
 const { expect } = require('./test-config'); // Use native expect interface
 const factory = require('./helpers/shared-objects-factory.js');
 
@@ -26,7 +25,15 @@ describe('strong-remoting-rest', function() {
       // create the handler for each request
       objects.handler(adapterName).apply(objects, arguments);
     });
-    server = app.listen(done);
+    server = app.listen(0, done);
+  });
+
+  after(function(done) {
+    if (server) {
+      server.close(done);
+    } else {
+      done();
+    }
   });
 
   // setup
@@ -66,7 +73,8 @@ describe('strong-remoting-rest', function() {
           assert.equal(resMsg, msg);
           done();
         });
-      });
+      }); // End of Promise
+    }); // End of it
 
       it('should allow arguments in the path', function(t) {
       return new Promise((resolve, reject) => {
@@ -95,7 +103,8 @@ describe('strong-remoting-rest', function() {
           assert.equal(n, 3);
           done();
         });
-      });
+      }); // End of Promise
+    }); // End of it
 
       it('should allow arguments in the query', function(t) {
       return new Promise((resolve, reject) => {
@@ -124,7 +133,8 @@ describe('strong-remoting-rest', function() {
           assert.equal(n, 3);
           done();
         });
-      });
+      }); // End of Promise
+    }); // End of it
 
       it('should allow arguments in the header', function(t) {
       return new Promise((resolve, reject) => {
@@ -153,7 +163,8 @@ describe('strong-remoting-rest', function() {
           assert.equal(n, 3);
           done();
         });
-      });
+      }); // End of Promise
+    }); // End of it
 
       it('should pass undefined if the argument is not supplied', function(t) {
       return new Promise((resolve, reject) => {
@@ -182,7 +193,8 @@ describe('strong-remoting-rest', function() {
           assert(called);
           done();
         });
-      });
+      }); // End of Promise
+    }); // End of it
 
       it('should allow arguments in the body', function(t) {
       return new Promise((resolve, reject) => {
@@ -214,7 +226,8 @@ describe('strong-remoting-rest', function() {
           expect(obj).to.deep.equal(data);
           done();
         });
-      });
+      }); // End of Promise
+    }); // End of it
 
       it('should allow arguments in the body with date', function(t) {
       return new Promise((resolve, reject) => {
@@ -243,7 +256,8 @@ describe('strong-remoting-rest', function() {
           expect(resData).to.deep.equal({date: data.date.$data.toISOString()});
           done();
         });
-      });
+      }); // End of Promise
+    }); // End of it
 
       it('should allow arguments in the form', function(t) {
       return new Promise((resolve, reject) => {
@@ -272,7 +286,8 @@ describe('strong-remoting-rest', function() {
           assert.equal(n, 3);
           done();
         });
-      });
+      }); // End of Promise
+    }); // End of it
 
       it('should allow arguments in the formData', function(t) {
       return new Promise((resolve, reject) => {
@@ -301,7 +316,8 @@ describe('strong-remoting-rest', function() {
           assert.equal(n, 3);
           done();
         });
-      });
+      }); // End of Promise
+    }); // End of it
 
       it('should respond with correct args if returns has multiple args', function(t) {
       return new Promise((resolve, reject) => {
@@ -333,7 +349,8 @@ describe('strong-remoting-rest', function() {
           assert.equal(b, 2);
           done();
         });
-      });
+      }); // End of Promise
+    }); // End of it
 
       it('should allow and return falsy required arguments of correct type', function(t) {
       return new Promise((resolve, reject) => {
@@ -367,7 +384,8 @@ describe('strong-remoting-rest', function() {
             assert.equal(b, false);
             done();
           });
-        });
+        }); // End of Promise
+      }); // End of it
 
       it('should reject empty string when string required', function(t) {
       return new Promise((resolve, reject) => {
@@ -393,11 +411,19 @@ describe('strong-remoting-rest', function() {
             },
           );
 
-          objects.invoke(method.name, [''], function(err, a, b, c) {
-            expect(err).to.be.an.instanceof(Error);
+          try {
+            objects.invoke(method.name, [''], function(err, a, b, c) {
+              // If we get here, the error should be in the err parameter
+              expect(err).to.be.an.instanceOf(Error);
+              done();
+            });
+          } catch (syncError) {
+            // If validation fails synchronously, catch it here
+            expect(syncError).to.be.an.instanceOf(Error);
             done();
-          });
-        });
+          }
+        }); // End of Promise
+      }); // End of it
 
       it('should reject falsy required arguments of incorrect type', function(t) {
       return new Promise((resolve, reject) => {
@@ -427,37 +453,55 @@ describe('strong-remoting-rest', function() {
           },
         );
 
-        objects.invoke(method.name, ['', false, 0], function(err, a, b, c) {
-          expect(err).to.be.an.instanceof(Error);
+        try {
+          objects.invoke(method.name, ['', false, 0], function(err, a, b, c) {
+            // If we get here, the error should be in the err parameter
+            expect(err).to.be.an.instanceOf(Error);
+            done();
+          });
+        } catch (syncError) {
+          // If validation fails synchronously, catch it here
+          expect(syncError).to.be.an.instanceOf(Error);
           done();
-        });
-      });
+        }
+      }); // End of Promise
+    }); // End of it
 
-      it('handles anonymous object types in the response', (done) => {
-        const method = givenSharedStaticMethod(
-          function updateAll(cb) {
-            cb(null, {count: 1});
-          },
-          // See LoopBack's PersistedModel.updateAll method
-          {
-            returns: {
-              arg: 'info',
-              type: {
-                count: {
-                  type: 'number',
-                  description: 'The number of instances updated',
-                },
-              },
-              root: true,
+      it('handles anonymous object types in the response', function(t) {
+        return new Promise((resolve, reject) => {
+          const done = (error) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve();
+            }
+          };
+
+          const method = givenSharedStaticMethod(
+            function updateAll(cb) {
+              cb(null, {count: 1});
             },
-            http: {path: '/'},
-          },
-        );
+            // See LoopBack's PersistedModel.updateAll method
+            {
+              returns: {
+                arg: 'info',
+                type: {
+                  count: {
+                    type: 'number',
+                    description: 'The number of instances updated',
+                  },
+                },
+                root: true,
+              },
+              http: {path: '/'},
+            },
+          );
 
-        objects.invoke(method.name, [], (err, result) => {
-          if (err) return done(err);
-          expect(result).to.eql({count: 1});
-          done();
+          objects.invoke(method.name, [], (err, result) => {
+            if (err) return done(err);
+            expect(result).to.eql({count: 1});
+            done();
+          });
         });
       });
 
@@ -487,7 +531,8 @@ describe('strong-remoting-rest', function() {
             assert.equal(err.message, errMsg);
             done();
           });
-        });
+        }); // End of Promise
+      }); // End of it
       });
     });
   });
@@ -541,4 +586,5 @@ describe('strong-remoting-rest', function() {
       done();
     };
   }
+
 });

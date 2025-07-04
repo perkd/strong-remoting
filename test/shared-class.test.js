@@ -8,7 +8,8 @@
 // Native Node.js test imports
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
-const extend = require('util')._extend;
+// Use Object.assign() instead of deprecated util._extend
+const extend = Object.assign;
 // Use native assert directly
 const SharedClass = require('../lib/shared-class');
 const factory = require('./helpers/shared-objects-factory.js');
@@ -37,8 +38,8 @@ describe('SharedClass', function() {
       const remotes = RemoteObjects.create();
       remotes.addClass(sc);
       const classes = new RestAdapter(remotes).getClasses();
-      expect(classes[0]).to.have.property('routes')
-        .eql([{path: '/some-class', verb: 'all'}]);
+      assert(classes[0].hasOwnProperty('routes'));
+      assert.deepStrictEqual(classes[0].routes, [{path: '/some-class', verb: 'all'}]);
     });
 
     it('does not require a sharedConstructor', function() {
@@ -49,8 +50,8 @@ describe('SharedClass', function() {
 
       const sc = new SharedClass(undefined, myClass);
       const fns = sc.methods().map(getName);
-      expect(fns).to.contain('foo');
-      expect(sc.http).to.eql({path: '/bar'});
+      assert(fns.includes('foo'));
+      assert.deepStrictEqual(sc.http, {path: '/bar'});
     });
   });
 
@@ -62,8 +63,8 @@ describe('SharedClass', function() {
       SomeClass.prototype.instanceMethod = function() {};
       SomeClass.prototype.instanceMethod.shared = true;
       const fns = sc.methods().map(getFn);
-      expect(fns).to.contain(SomeClass.staticMethod);
-      expect(fns).to.contain(SomeClass.prototype.instanceMethod);
+      assert(fns.includes(SomeClass.staticMethod));
+      assert(fns.includes(SomeClass.prototype.instanceMethod));
     });
 
     it('returns all methods when includeDisabled is true', function() {
@@ -81,7 +82,7 @@ describe('SharedClass', function() {
         return m.name;
       });
 
-      expect(outputNames).to.eql(inputNames);
+      assert.deepStrictEqual(outputNames, inputNames);
     });
 
     it('only discovers a function once with aliases', function() {
@@ -96,7 +97,7 @@ describe('SharedClass', function() {
       const methods = sc.methods();
       const fns = methods.map(getFn);
       assert.strictEqual(fns.length, 1);
-      expect(methods[0].aliases.sort()).to.eql(['a', 'b']);
+      assert.deepStrictEqual(methods[0].aliases.sort(), ['a', 'b']);
     });
 
     it('discovers multiple functions correctly', function() {
@@ -108,10 +109,10 @@ describe('SharedClass', function() {
       MyClass.prototype.b = createSharedFn();
       const fns = sc.methods().map(getFn);
       assert.strictEqual(fns.length, 4);
-      expect(fns).to.contain(MyClass.a);
-      expect(fns).to.contain(MyClass.b);
-      expect(fns).to.contain(MyClass.prototype.a);
-      expect(fns).to.contain(MyClass.prototype.b);
+      assert(fns.includes(MyClass.a));
+      assert(fns.includes(MyClass.b));
+      assert(fns.includes(MyClass.prototype.a));
+      assert(fns.includes(MyClass.prototype.b));
       function createSharedFn() {
         const fn = function() {};
         fn.shared = true;
@@ -131,8 +132,8 @@ describe('SharedClass', function() {
       MockModel2.shared = true;
       SomeClass.prototype.instanceMethod = MockModel2;
       const fns = sc.methods().map(getFn);
-      expect(fns).to.not.contain(SomeClass.staticMethod);
-      expect(fns).to.not.contain(SomeClass.prototype.instanceMethod);
+      assert(!fns.includes(SomeClass.staticMethod));
+      assert(!fns.includes(SomeClass.prototype.instanceMethod));
     });
   });
 
@@ -145,7 +146,7 @@ describe('SharedClass', function() {
         prototype: true,
       });
       const methods = sc.methods().map(getName);
-      expect(methods).to.contain(METHOD_NAME);
+      assert(methods.includes(METHOD_NAME));
     });
 
     it('defines a remote method with accessType', function() {
@@ -158,8 +159,8 @@ describe('SharedClass', function() {
         accessType: 'READ',
       });
       const methods = sc.methods().map(getName);
-      expect(methods).to.contain(METHOD_NAME);
-      expect(sc.findMethodByName(METHOD_NAME).accessType).to.eql('READ');
+      assert(methods.includes(METHOD_NAME));
+      assert.deepStrictEqual(sc.findMethodByName(METHOD_NAME).accessType, 'READ');
     });
 
     it('defines a remote method with arbitrary custom metadata', function() {
@@ -169,7 +170,7 @@ describe('SharedClass', function() {
         isStatic: true,
         accessScope: 'read:custom',
       });
-      expect(sc.findMethodByName('testFn').accessScope).to.eql('read:custom');
+      assert.deepStrictEqual(sc.findMethodByName('testFn').accessScope, 'read:custom');
     });
 
     it('should allow a shared class to resolve dynamically defined functions', function(t) {
@@ -194,7 +195,7 @@ describe('SharedClass', function() {
 
         sharedClass.defineMethod(METHOD_NAME, {});
         const methods = sharedClass.methods().map(getName);
-        expect(methods).to.contain(METHOD_NAME);
+        assert(methods.includes(METHOD_NAME));
       });
   });
 
@@ -211,7 +212,7 @@ describe('SharedClass', function() {
         define('dyn', {}, MyClass.obj.dyn);
       });
       const methods = sharedClass.methods().map(getName);
-      expect(methods).to.contain('dyn');
+      assert(methods.includes('dyn'));
     });
   });
 
@@ -262,7 +263,7 @@ describe('SharedClass', function() {
       const sharedClass = new SharedClass(CLASS_NAME, SomeClass);
       remotes.addClass(sharedClass);
       const classes = remotes.classes().map(getName);
-      expect(classes).to.contain(CLASS_NAME);
+      assert(classes.includes(CLASS_NAME));
     });
   });
 
@@ -285,19 +286,19 @@ describe('SharedClass', function() {
     it('excludes disabled static methods from the method list', function() {
       sc.disableMethod(METHOD_NAME, true);
       const methods = sc.methods().map(getName);
-      expect(methods).to.not.contain(METHOD_NAME);
+      assert(!methods.includes(METHOD_NAME));
     });
 
     it('excludes disabled prototype methods from the method list', function() {
       sc.disableMethod(INST_METHOD_NAME, false);
       const methods = sc.methods().map(getName);
-      expect(methods).to.not.contain(INST_METHOD_NAME);
+      assert(!methods.includes(INST_METHOD_NAME));
     });
 
     it('excludes disabled dynamic (resolved) methods from the method list', function() {
       sc.disableMethod(DYN_METHOD_NAME, true);
       const methods = sc.methods().map(getName);
-      expect(methods).to.not.contain(DYN_METHOD_NAME);
+      assert(!methods.includes(DYN_METHOD_NAME));
     });
   });
 
@@ -322,34 +323,34 @@ describe('SharedClass', function() {
       it('excludes methods from the method list disabled by name', function() {
         sc.disableMethodByName(STATIC_METHOD_NAME);
         const methods = sc.methods().map(getName);
-        expect(methods).to.not.contain(STATIC_METHOD_NAME);
+        assert(!methods.includes(STATIC_METHOD_NAME));
       });
 
       it('excludes methods from the method list disabled by alias',
         function() {
           let methods = sc.methods().map(getName);
-          expect(methods).to.contain(STATIC_METHOD_NAME);
+          assert(methods.includes(STATIC_METHOD_NAME));
           sc.disableMethodByName(STATIC_METHOD_ALIAS);
           methods = sc.methods().map(getName);
-          expect(methods).to.not.contain(STATIC_METHOD_NAME);
+          assert(!methods.includes(STATIC_METHOD_NAME));
         });
 
       it('does not exclude methods from the method list using a prototype ' +
       'method name', function() {
         let methods = sc.methods().map(getName);
-        expect(methods).to.contain(STATIC_METHOD_NAME);
+        assert(methods.includes(STATIC_METHOD_NAME));
         sc.disableMethodByName('prototype.'.concat(STATIC_METHOD_NAME));
         methods = sc.methods().map(getName);
-        expect(methods).to.contain(STATIC_METHOD_NAME);
+        assert(methods.includes(STATIC_METHOD_NAME));
       });
 
       it('does not exclude methods from the method list using a prototype ' +
       'method alias', function() {
         let methods = sc.methods().map(getName);
-        expect(methods).to.contain(STATIC_METHOD_NAME);
+        assert(methods.includes(STATIC_METHOD_NAME));
         sc.disableMethodByName('prototype.'.concat(STATIC_METHOD_ALIAS));
         methods = sc.methods().map(getName);
-        expect(methods).to.contain(STATIC_METHOD_NAME);
+        assert(methods.includes(STATIC_METHOD_NAME));
       });
     });
 
@@ -370,35 +371,35 @@ describe('SharedClass', function() {
         function() {
           sc.disableMethodByName(INST_METHOD_FULLNAME);
           const methods = sc.methods().map(getName);
-          expect(methods).to.not.contain(INST_METHOD_FULLNAME);
-          expect(methods).to.not.contain(INST_METHOD_BASENAME);
+          assert(!methods.includes(INST_METHOD_FULLNAME));
+          assert(!methods.includes(INST_METHOD_BASENAME));
         });
 
       it('excludes methods from the method list disabled by alias',
         function() {
           let methods = sc.methods().map(getName);
-          expect(methods).to.contain(INST_METHOD_BASENAME);
+          assert(methods.includes(INST_METHOD_BASENAME));
           sc.disableMethodByName(INST_METHOD_FULLALIAS);
           methods = sc.methods().map(getName);
-          expect(methods).to.not.contain(INST_METHOD_BASENAME);
+          assert(!methods.includes(INST_METHOD_BASENAME));
         });
 
       it('does not exclude methods from the method list using ' +
       'static method name', function() {
         let methods = sc.methods().map(getName);
-        expect(methods).to.contain(INST_METHOD_BASENAME);
+        assert(methods.includes(INST_METHOD_BASENAME));
         sc.disableMethodByName(INST_METHOD_BASENAME);
         methods = sc.methods().map(getName);
-        expect(methods).to.contain(INST_METHOD_BASENAME);
+        assert(methods.includes(INST_METHOD_BASENAME));
       });
 
       it('does not exclude methods from the method list using ' +
       'static method alias', function() {
         let methods = sc.methods().map(getName);
-        expect(methods).to.contain(INST_METHOD_BASENAME);
+        assert(methods.includes(INST_METHOD_BASENAME));
         sc.disableMethodByName(INST_METHOD_BASEALIAS);
         methods = sc.methods().map(getName);
-        expect(methods).to.contain(INST_METHOD_BASENAME);
+        assert(methods.includes(INST_METHOD_BASENAME));
       });
     });
   });
@@ -421,3 +422,5 @@ function ignoreDeprecationsInThisBlock() {
     process.removeListener('deprecation', NOOP);
   });
 }
+
+}); // End of describe('SharedClass')

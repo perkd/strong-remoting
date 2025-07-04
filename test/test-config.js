@@ -169,8 +169,23 @@ module.exports = {
 before(async () => {
   console.log('🧪 Starting test suite...');
   process.env.NODE_ENV = 'test';
+
+  // Set up global timeout for hanging tests
+  process.env.NODE_TEST_TIMEOUT = '30000'; // 30 seconds per test
 });
 
 after(async () => {
   console.log('✅ Test suite completed');
+
+  // Force cleanup of any remaining handles
+  await new Promise(resolve => setTimeout(resolve, 100));
+
+  // Log any remaining handles that might prevent exit
+  if (process._getActiveHandles && process._getActiveHandles().length > 0) {
+    console.warn('⚠️  Warning: Active handles remaining:', process._getActiveHandles().length);
+  }
+
+  if (process._getActiveRequests && process._getActiveRequests().length > 0) {
+    console.warn('⚠️  Warning: Active requests remaining:', process._getActiveRequests().length);
+  }
 });

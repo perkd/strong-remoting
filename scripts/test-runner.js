@@ -23,7 +23,7 @@ const config = {
   testDir: path.join(__dirname, '..', 'test'),
   testPattern: '**/*.test.js',
   coverageDir: path.join(__dirname, '..', 'coverage'),
-  timeout: 10000,
+  timeout: 3000,
   concurrency: true,
   reporter: 'spec',
 };
@@ -33,34 +33,56 @@ const config = {
  */
 async function runTests() {
   console.log('🧪 Starting modern test runner...');
-  
+
+  let e2eServer = null;
+
   try {
     // Parse command line arguments
     const args = parseArgs();
-    
+
     // Discover test files
     const testFiles = await discoverTestFiles(args.pattern || config.testPattern);
-    
+
     if (testFiles.length === 0) {
       console.log('❌ No test files found');
       process.exit(1);
     }
-    
+
     console.log(`📁 Found ${testFiles.length} test files`);
-    
+
+    // Check if we need to start E2E server
+    const hasE2ETests = testFiles.some(file => file.includes('e2e'));
+    if (hasE2ETests) {
+      console.log('🚀 Starting E2E server...');
+      e2eServer = await startE2EServer();
+    }
+
     // Run tests with coverage
     const success = await runTestsWithCoverage(testFiles, args);
-    
+
     if (success) {
       console.log('✅ All tests passed!');
-      process.exit(0);
     } else {
       console.log('❌ Some tests failed');
-      process.exit(1);
     }
-    
+
+    // Clean up
+    if (e2eServer) {
+      console.log('🛑 Stopping E2E server...');
+      await stopE2EServer(e2eServer);
+    }
+
+    process.exit(success ? 0 : 1);
+
   } catch (error) {
     console.error('💥 Test runner error:', error);
+
+    // Clean up on error
+    if (e2eServer) {
+      console.log('🛑 Stopping E2E server due to error...');
+      await stopE2EServer(e2eServer);
+    }
+
     process.exit(1);
   }
 }
@@ -119,6 +141,10 @@ async function discoverTestFiles(pattern) {
   const { glob } = require('glob');
 
   try {
+    // If the pattern is a direct file path, use it directly
+    if (fs.existsSync(pattern) && fs.statSync(pattern).isFile()) {
+      return [pattern];
+    }
     const searchPattern = path.join(config.testDir, pattern);
     const files = await glob(searchPattern, { ignore: '**/node_modules/**' });
 
@@ -260,12 +286,90 @@ function debounce(func, wait) {
 }
 
 /**
+ * Start E2E server for testing
+ */
+async function startE2EServer() {
+  const serverPath = path.join(__dirname, '..', 'test', 'e2e', 'e2e-server.js');
+
+  return new Promise((resolve, reject) => {
+    const server = spawn('node', [serverPath], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      cwd: path.join(__dirname, '..'),
+      env: {
+        ...process.env,
+        NODE_ENV: 'test'
+      }
+    });
+
+    let output = '';
+
+    server.stdout.on('data', (data) => {
+      output += data.toString();
+      if (output.includes('e2e server listening')) {
+        console.log('✅ E2E server started successfully');
+        resolve(server);
+      }
+    });
+
+    server.stderr.on('data', (data) => {
+      console.error('E2E server error:', data.toString());
+    });
+
+    server.on('error', (error) => {
+      console.error('Failed to start E2E server:', error);
+      reject(error);
+    });
+
+    server.on('exit', (code) => {
+      if (code !== 0) {
+        reject(new Error(`E2E server exited with code ${code}`));
+      }
+    });
+
+    // Timeout after 10 seconds
+    setTimeout(() => {
+      if (!server.killed) {
+        server.kill();
+        reject(new Error('E2E server startup timeout'));
+      }
+    }, 10000);
+  });
+}
+
+/**
+ * Stop E2E server
+ */
+async function stopE2EServer(server) {
+  if (!server || server.killed) {
+    return;
+  }
+
+  return new Promise((resolve) => {
+    server.on('exit', () => {
+      console.log('✅ E2E server stopped');
+      resolve();
+    });
+
+    // Try graceful shutdown first
+    server.kill('SIGTERM');
+
+    // Force kill after 5 seconds
+    setTimeout(() => {
+      if (!server.killed) {
+        server.kill('SIGKILL');
+        resolve();
+      }
+    }, 5000);
+  });
+}
+
+/**
  * Install required dependencies if missing
  */
 async function ensureDependencies() {
   const requiredPackages = ['glob', 'c8'];
   const missingPackages = [];
-  
+
   for (const pkg of requiredPackages) {
     try {
       require.resolve(pkg);
@@ -273,16 +377,16 @@ async function ensureDependencies() {
       missingPackages.push(pkg);
     }
   }
-  
+
   if (missingPackages.length > 0) {
     console.log(`📦 Installing missing packages: ${missingPackages.join(', ')}`);
-    
+
     return new Promise((resolve, reject) => {
       const child = spawn('npm', ['install', '--save-dev', ...missingPackages], {
         stdio: 'inherit',
         cwd: path.join(__dirname, '..')
       });
-      
+
       child.on('close', (code) => {
         if (code === 0) {
           resolve();

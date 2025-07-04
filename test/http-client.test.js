@@ -64,9 +64,21 @@ describe('HttpClient', function() {
     });
   });
 
-  after(async function() {
+  after(async function teardownServer() {
     await new Promise((resolve) => {
-      server.close(resolve);
+      server.close((err) => {
+        if (err) {
+          console.error('Error closing http-client test server:', err);
+        }
+
+        // Force close any remaining connections
+        if (server.closeAllConnections) {
+          server.closeAllConnections();
+        }
+
+        // Small delay to ensure cleanup completes
+        setTimeout(resolve, 10);
+      });
     });
   });
 
@@ -81,9 +93,9 @@ describe('HttpClient', function() {
           }
         };
       httpClient(`${baseUrl}/test`, (err, res, body) => {
-        expect(err).to.be.null;
+        assert.strictEqual(err, null);
         assert.strictEqual(res.statusCode, 200);
-        expect(body).to.deep.equal({ message: 'GET success', query: {} });
+        assert.deepStrictEqual(body, { message: 'GET success', query: {} });
         done();
       });
       }); // End of Promise
@@ -103,9 +115,9 @@ describe('HttpClient', function() {
         method: 'GET',
         qs: { param: 'value' }
       }, (err, res, body) => {
-        expect(err).to.be.null;
+        assert.strictEqual(err, null);
         assert.strictEqual(res.statusCode, 200);
-        expect(body.query).to.deep.equal({ param: 'value' });
+        assert.deepStrictEqual(body.query, { param: 'value' });
         done();
       });
       }); // End of Promise
@@ -125,9 +137,9 @@ describe('HttpClient', function() {
         method: 'POST',
         json: { test: 'data' }
       }, (err, res, body) => {
-        expect(err).to.be.null;
+        assert.strictEqual(err, null);
         assert.strictEqual(res.statusCode, 200);
-        expect(body.body).to.deep.equal({ test: 'data' });
+        assert.deepStrictEqual(body.body, { test: 'data' });
         done();
       });
       }); // End of Promise
@@ -146,7 +158,7 @@ describe('HttpClient', function() {
         url: `${baseUrl}/auth`,
         auth: { bearer: 'test-token' }
       }, (err, res, body) => {
-        expect(err).to.be.null;
+        assert.strictEqual(err, null);
         assert.strictEqual(res.statusCode, 200);
         assert.strictEqual(body.auth, 'Bearer test-token');
         done();
@@ -167,9 +179,9 @@ describe('HttpClient', function() {
         url: `${baseUrl}/auth`,
         auth: { username: 'user', password: 'pass' }
       }, (err, res, body) => {
-        expect(err).to.be.null;
+        assert.strictEqual(err, null);
         assert.strictEqual(res.statusCode, 200);
-        expect(body.auth).to.match(/^Basic /);
+        assert.match(body.auth, /^Basic /);
         done();
       });
       }); // End of Promise
@@ -185,7 +197,7 @@ describe('HttpClient', function() {
           }
         };
       httpClient(`${baseUrl}/error`, (err, res, body) => {
-        expect(err).to.be.null; // request package doesn't throw on HTTP errors
+        assert.strictEqual(err, null); // request package doesn't throw on HTTP errors
         assert.strictEqual(res.statusCode, 500);
         assert.strictEqual(body.error.message, 'Test error');
         done();
@@ -205,9 +217,9 @@ describe('HttpClient', function() {
       // Use a valid URL format but unreachable port to trigger ECONNREFUSED
       httpClient('http://127.0.0.1:99999/nonexistent', (err, res, body) => {
         try {
-          expect(err).to.be.an('error');
+          assert(err instanceof Error);
           // Accept either network errors or URL validation errors
-          expect(err.code).to.match(/ECONNREFUSED|ENOTFOUND|ERR_INVALID_URL/);
+          assert.match(err.code, /ECONNREFUSED|ENOTFOUND|ERR_INVALID_URL/);
           done();
         } catch (assertionError) {
           done(assertionError);
@@ -221,7 +233,7 @@ describe('HttpClient', function() {
     it('should return promise when no callback provided', async function() {
       const response = await httpClient(`${baseUrl}/test`);
       assert.strictEqual(response.statusCode, 200);
-      expect(response.body).to.deep.equal({ message: 'GET success', query: {} });
+      assert.deepStrictEqual(response.body, { message: 'GET success', query: {} });
     });
 
     it('should handle promise rejection on network error', async function() {
@@ -229,7 +241,7 @@ describe('HttpClient', function() {
         await httpClient('http://localhost:99999/nonexistent');
         expect.fail('Should have thrown an error');
       } catch (err) {
-        expect(err).to.be.an('error');
+        assert(err instanceof Error);
       }
     });
   });
@@ -245,17 +257,17 @@ describe('HttpClient', function() {
           }
         };
       httpClient(`${baseUrl}/test`, (err, res, body) => {
-        expect(err).to.be.null;
-        
+        assert.strictEqual(err, null);
+
         // Verify response structure matches request package
-        expect(res).to.have.property('statusCode');
-        expect(res).to.have.property('statusMessage');
-        expect(res).to.have.property('headers');
-        expect(res).to.have.property('body');
-        expect(res).to.have.property('request');
-        
-        expect(res.request).to.have.property('uri');
-        expect(res.request).to.have.property('method');
+        assert(res.hasOwnProperty('statusCode'));
+        assert(res.hasOwnProperty('statusMessage'));
+        assert(res.hasOwnProperty('headers'));
+        assert(res.hasOwnProperty('body'));
+        assert(res.hasOwnProperty('request'));
+
+        assert(res.request.hasOwnProperty('uri'));
+        assert(res.request.hasOwnProperty('method'));
         
         done();
       });
@@ -275,7 +287,7 @@ describe('HttpClient', function() {
         url: `${baseUrl}/test`,
         json: true
       }, (err, res, body) => {
-        expect(err).to.be.null;
+        assert.strictEqual(err, null);
         assert.strictEqual(typeof body, 'object');
         assert.strictEqual(body.message, 'GET success');
         done();
@@ -299,7 +311,7 @@ describe('HttpClient', function() {
           'User-Agent': 'test-agent'
         }
       }, (err, res, body) => {
-        expect(err).to.be.null;
+        assert.strictEqual(err, null);
         assert.strictEqual(res.statusCode, 200);
         done();
       });
@@ -326,7 +338,7 @@ describe('HttpClient', function() {
       });
 
       httpClient(`${baseUrl}/empty-204`, (err, res, body) => {
-        expect(err).to.be.null;
+        assert.strictEqual(err, null);
         assert.strictEqual(res.statusCode, 204);
         done();
       });
@@ -343,9 +355,9 @@ describe('HttpClient', function() {
           }
         };
       httpClient(`${baseUrl}/error`, (err, res, body) => {
-        expect(err).to.be.null; // HTTP errors don't throw in request package
+        assert.strictEqual(err, null); // HTTP errors don't throw in request package
         assert.strictEqual(res.statusCode, 500);
-        expect(body).to.have.property('error');
+        assert(body.hasOwnProperty('error'));
         done();
       });
       }); // End of Promise
@@ -360,7 +372,7 @@ describe('HttpClient', function() {
 
     it('should handle axios dependency gracefully', function() {
       const client = new HttpClient();
-      expect(() => client.axios).to.not.throw();
+      assert.doesNotThrow(() => client.axios);
     });
   });
 
@@ -380,7 +392,7 @@ describe('HttpClient', function() {
           }
         };
       httpClient({}, (err, res, body) => {
-        expect(err).to.be.an('error'); // Should fail due to missing URL
+        assert(err instanceof Error); // Should fail due to missing URL
         done();
       });
       }); // End of Promise
@@ -396,7 +408,7 @@ describe('HttpClient', function() {
           }
         };
       httpClient(`${baseUrl}/test?existing=param`, (err, res, body) => {
-        expect(err).to.be.null;
+        assert.strictEqual(err, null);
         assert.strictEqual(body.query.existing, 'param');
         done();
       });

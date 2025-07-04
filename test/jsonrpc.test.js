@@ -16,158 +16,319 @@ const request = require('./helpers/native-http-test'); // Native HTTP testing
 describe('strong-remoting-jsonrpc', function() {
   let app, server, objects, remotes;
 
+  // Track all test servers for cleanup
+  const testServers = [];
+
   // setup
-  beforeEach(function() {
-    if (server) server.close();
+  beforeEach(async function() {
+    if (server) {
+      await new Promise((resolve) => {
+        server.close(() => {
+          resolve();
+        });
+      });
+      server = null;
+    }
     objects = RemoteObjects.create({json: {limit: '1kb'}});
     remotes = objects.exports;
     app = express();
   });
 
-  function jsonrpc(url, method, parameters) {
-    return request(app).post(url)
-      .set('Accept', 'application/json')
-      .set('Content-Type', 'application/json')
-      .send({'jsonrpc': '2.0', 'method': method, 'params': parameters, 'id': 1})
-      .expect('Content-Type', /json/);
-  }
+  // cleanup
+  afterEach(async function() {
+    if (server) {
+      await new Promise((resolve) => {
+        server.close(() => {
+          resolve();
+        });
+      });
+      server = null;
+    }
+    if (objects) {
+      objects = null;
+    }
+    if (remotes) {
+      remotes = null;
+    }
+    if (app) {
+      app = null;
+    }
+  });
+
+  // Global cleanup for all test servers
+  after(async function() {
+    console.log('Cleaning up test servers...');
+    for (const testServer of testServers) {
+      if (testServer && !testServer.destroyed) {
+        await new Promise((resolve) => {
+          testServer.close(() => {
+            resolve();
+          });
+        });
+      }
+    }
+    testServers.length = 0;
+    console.log('Test server cleanup completed');
+  });
 
   describe('handlers', function() {
     describe('jsonrpc', function() {
-      beforeEach(function() {
-        app.use(function(req, res, next) {
-          // create the handler for each request
-          objects.handler('jsonrpc').apply(objects, arguments);
-        });
-        function greet(msg, fn) {
+
+
+      // Helper function to create test server
+      function createTestServer(callback) {
+        const testObjects = RemoteObjects.create({json: {limit: '1kb'}});
+        const testApp = express();
+
+        // Set up test classes using SharedClass
+        function User() {}
+        User.greet = function(msg, fn) {
           fn(null, msg);
-        }
-        greet.accepts = [
-          {'arg': 'msg', 'type': 'string'},
-        ];
-
-        // Create a shared method directly on the function object
-        remotes.user = {
-          greet: greet,
         };
-        greet.shared = true;
+        const userClass = new SharedClass('user', User);
+        userClass.defineMethod('greet', {
+          isStatic: true,
+          accepts: [{'arg': 'msg', 'type': 'string'}],
+          returns: [{'arg': 'result', 'type': 'string'}]
+        });
+        testObjects.addClass(userClass);
 
-        // Create a shared method directly on the function object for named parameters tests
-        function sum(numA, numB, cb) {
+        function Mathematic() {}
+        Mathematic.sum = function(numA, numB, cb) {
           cb(null, numA + numB);
-        }
-        remotes.mathematic = {
-          sum: sum,
         };
-        sum.accepts = [
-          {'arg': 'numA', 'type': 'number'},
-          {'arg': 'numB', 'type': 'number'},
-        ];
-        sum.shared = true;
-        sum.returns = {
-          'arg': 'sum',
-          'type': 'number',
-        };
-        sum.shared = true;
+        const mathematicClass = new SharedClass('mathematic', Mathematic);
+        mathematicClass.defineMethod('sum', {
+          isStatic: true,
+          accepts: [
+            {'arg': 'numA', 'type': 'number'},
+            {'arg': 'numB', 'type': 'number'}
+          ],
+          returns: [{'arg': 'sum', 'type': 'number'}]
+        });
+        testObjects.addClass(mathematicClass);
 
-        // Create a shared method using SharedClass/SharedMethod
-        function Product() {
-        }
-
+        function Product() {}
         Product.getPrice = function(cb) {
           process.nextTick(function() {
-            return cb(null, 100);
+            cb(null, 100);
           });
         };
-
         const productClass = new SharedClass('product', Product);
-        productClass.defineMethod('getPrice', {isStatic: true});
-        objects.addClass(productClass);
-      });
+        productClass.defineMethod('getPrice', {
+          isStatic: true,
+          returns: [{'arg': 'price', 'type': 'number'}]
+        });
+        testObjects.addClass(productClass);
+
+        testApp.use(testObjects.handler('jsonrpc'));
+
+        const testServer = testApp.listen(0, function() {
+          // Track server for cleanup
+          testServers.push(testServer);
+          callback(null, testServer);
+        });
+
+        testServer.on('error', callback);
+      }
+
+      // All tests now use inline servers, no global cleanup needed
+
+
 
       it('should support calling object methods', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
-        jsonrpc('/user/jsonrpc', 'greet', ['JS'])
-          .expect({'jsonrpc': '2.0', 'id': 1, 'result': 'JS'}, done);
-      }); // End of Promise
-    }); // End of it
+        return new Promise((resolve, reject) => {
+          // Set up server inline for this test
+          console.log('Setting up inline server...');
+
+          const testObjects = RemoteObjects.create({json: {limit: '1kb'}});
+          const testApp = express();
+
+          // Set up test classes
+          function User() {}
+          User.greet = function(msg, fn) {
+            fn(null, msg);
+          };
+          testObjects.exports.User = User;
+
+          testApp.use(testObjects.handler('jsonrpc'));
+
+          const testServer = testApp.listen(0, function() {
+            console.log('Inline server started on port:', testServer.address().port);
+            // Track server for cleanup
+            testServers.push(testServer);
+
+            const serverUrl = `http://localhost:${testServer.address().port}`;
+            request(serverUrl).post('/User/jsonrpc')
+              .set('Accept', 'application/json')
+              .set('Content-Type', 'application/json')
+              .send({'jsonrpc': '2.0', 'method': 'greet', 'params': ['hello'], 'id': 1})
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .end(function(err, res) {
+                testServer.close((closeErr) => {
+                  if (err || closeErr) {
+                    reject(err || closeErr);
+                  } else {
+                    resolve();
+                  }
+                });
+              });
+          });
+
+          testServer.on('error', function(err) {
+            reject(err);
+          });
+        });
+      });
 
       it('Should successfully call a method with named parameters', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
-        jsonrpc('/mathematic/jsonrpc', 'sum', {'numB': 9, 'numA': 2})
-          .expect({'jsonrpc': '2.0', 'id': 1, 'result': 11}, done);
-      }); // End of Promise
-    }); // End of it
+        return new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Test timeout after 5 seconds'));
+          }, 5000);
+
+          createTestServer(function(err, testServer) {
+            if (err) {
+              clearTimeout(timeout);
+              return reject(err);
+            }
+
+            const serverUrl = `http://localhost:${testServer.address().port}`;
+            const req = request(serverUrl).post('/mathematic/jsonrpc')
+              .set('Accept', 'application/json')
+              .set('Content-Type', 'application/json')
+              .send({'jsonrpc': '2.0', 'method': 'sum', 'params': {'numB': 9, 'numA': 2}, 'id': 1})
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .expect({'jsonrpc': '2.0', 'id': 1, 'result': 11})
+              .end(function(err, res) {
+                clearTimeout(timeout);
+                testServer.close((closeErr) => {
+                  if (err || closeErr) {
+                    reject(err || closeErr);
+                  } else {
+                    resolve();
+                  }
+                });
+              });
+          });
+        });
+      });
 
       it('should support a remote method using shared method', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
-        jsonrpc('/product/jsonrpc', 'getPrice', [])
-          .expect({'jsonrpc': '2.0', 'id': 1, 'result': 100}, done);
-      }); // End of Promise
-    }); // End of it
+        return new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Test timeout after 5 seconds'));
+          }, 5000);
+
+          createTestServer(function(err, testServer) {
+            if (err) {
+              clearTimeout(timeout);
+              return reject(err);
+            }
+
+            const serverUrl = `http://localhost:${testServer.address().port}`;
+            const req = request(serverUrl).post('/product/jsonrpc')
+              .set('Accept', 'application/json')
+              .set('Content-Type', 'application/json')
+              .send({'jsonrpc': '2.0', 'method': 'getPrice', 'params': [], 'id': 1})
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .expect({'jsonrpc': '2.0', 'id': 1, 'result': 100})
+              .end(function(err, res) {
+                clearTimeout(timeout);
+                testServer.close((closeErr) => {
+                  if (err || closeErr) {
+                    reject(err || closeErr);
+                  } else {
+                    resolve();
+                  }
+                });
+              });
+          });
+        });
+      });
 
       it('should report error for non-existent methods', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
-        jsonrpc('/user/jsonrpc', 'greet1', ['JS'])
-          .expect({
-            'jsonrpc': '2.0',
-            'id': 1,
-            'error': {
-              'code': -32601,
-              'message': 'Method not found',
-            },
-          }, done);
-      }); // End of Promise
-    }); // End of it
+        return new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Test timeout after 5 seconds'));
+          }, 5000);
+
+          createTestServer(function(err, testServer) {
+            if (err) {
+              clearTimeout(timeout);
+              return reject(err);
+            }
+
+            const serverUrl = `http://localhost:${testServer.address().port}`;
+            const req = request(serverUrl).post('/user/jsonrpc')
+              .set('Accept', 'application/json')
+              .set('Content-Type', 'application/json')
+              .send({'jsonrpc': '2.0', 'method': 'greet1', 'params': ['JS'], 'id': 1})
+              .expect('Content-Type', /json/)
+              .expect(200)
+              .expect({
+                'jsonrpc': '2.0',
+                'id': 1,
+                'error': {
+                  'code': -32601,
+                  'message': 'Method not found',
+                },
+              })
+              .end(function(err, res) {
+                clearTimeout(timeout);
+                testServer.close((closeErr) => {
+                  if (err || closeErr) {
+                    reject(err || closeErr);
+                  } else {
+                    resolve();
+                  }
+                });
+              });
+          });
+        });
+      });
 
       // The 1kb limit is set by RemoteObjects.create({json: {limit: '1kb'}});
       it('should reject json payload larger than 1kb', function(t) {
-      return new Promise((resolve, reject) => {
-        const done = (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        };
-        // Build an object that is larger than 1kb
-        let name = '';
-        for (let i = 0; i < 2048; i++) {
-          name += '11111111111';
-        }
+        return new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Test timeout after 5 seconds'));
+          }, 5000);
 
-        jsonrpc('/user/jsonrpc', 'greet', [name])
-          .expect(413, done);
-      }); // End of Promise
-    }); // End of it
+          createTestServer(function(err, testServer) {
+            if (err) {
+              clearTimeout(timeout);
+              return reject(err);
+            }
+
+            const serverUrl = `http://localhost:${testServer.address().port}`;
+            // Build an object that is larger than 1kb
+            let name = '';
+            for (let i = 0; i < 2048; i++) {
+              name += '11111111111';
+            }
+
+            const req = request(serverUrl).post('/user/jsonrpc')
+              .set('Accept', 'application/json')
+              .set('Content-Type', 'application/json')
+              .send({'jsonrpc': '2.0', 'method': 'greet', 'params': [name], 'id': 1})
+              .expect(413)
+              .end(function(err, res) {
+                clearTimeout(timeout);
+                testServer.close((closeErr) => {
+                  if (err || closeErr) {
+                    reject(err || closeErr);
+                  } else {
+                    resolve();
+                  }
+                });
+              });
+          });
+        });
+      });
     }); // End of inner describe (jsonrpc)
   }); // End of describe (handlers)
 }); // End of main describe

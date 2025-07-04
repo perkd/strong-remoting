@@ -37,8 +37,40 @@ describe('authorization hook', function() {
   });
 
   after(async function teardownServer() {
+    // Clean up remotes connections first
+    if (remotes) {
+      // Clear auth to prevent state leakage
+      remotes.auth = null;
+
+      // Properly disconnect and clean up HTTP connections
+      if (remotes.disconnect) {
+        remotes.disconnect();
+      }
+
+      // Force cleanup of any remaining HTTP connections
+      if (remotes._adapter && remotes._adapter.client) {
+        const client = remotes._adapter.client;
+        if (client.destroy) {
+          client.destroy();
+        }
+      }
+    }
+
+    // Close server
     await new Promise((resolve) => {
-      server.close(resolve);
+      server.close((err) => {
+        if (err) {
+          console.error('Error closing authorize-hook test server:', err);
+        }
+
+        // Force close any remaining connections
+        if (server.closeAllConnections) {
+          server.closeAllConnections();
+        }
+
+        // Small delay to ensure cleanup completes
+        setTimeout(resolve, 10);
+      });
     });
   });
 

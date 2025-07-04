@@ -25,16 +25,16 @@ describe('Promise Integration', function() {
     remotes = RemoteObjects.create();
 
     // Verify Promise enhancement was applied
-    expect(remotes._original_invoke).to.be.a('function');
-    expect(remotes._original_invokeMethodInContext).to.be.a('function');
+    assert.strictEqual(typeof remotes._original_invoke, 'function');
+    assert.strictEqual(typeof remotes._original_invokeMethodInContext, 'function');
   });
 
   describe('Promise Enhancement Verification', function() {
     it('should enhance RemoteObjects with Promise support', function() {
-      expect(remotes.invoke).to.be.a('function');
-      expect(remotes._original_invoke).to.be.a('function');
-      expect(remotes.invokeMethodInContext).to.be.a('function');
-      expect(remotes._original_invokeMethodInContext).to.be.a('function');
+      assert.strictEqual(typeof remotes.invoke, 'function');
+      assert.strictEqual(typeof remotes._original_invoke, 'function');
+      assert.strictEqual(typeof remotes.invokeMethodInContext, 'function');
+      assert.strictEqual(typeof remotes._original_invokeMethodInContext, 'function');
     });
 
     it('should detect callback vs Promise mode correctly', function() {
@@ -58,7 +58,7 @@ describe('Promise Integration', function() {
 
       // Test Promise mode detection
       const promise = remotes.invoke('test', [], []);
-      expect(promise).to.be.a('promise');
+      assert(promise instanceof Promise);
       promiseMode = true;
 
       assert.strictEqual(callbackMode, true);
@@ -75,7 +75,7 @@ describe('Promise Integration', function() {
         await remotes.invoke('test', [], []);
         expect.fail('Should have thrown an error');
       } catch (err) {
-        expect(err).to.be.an('error');
+        assert(err instanceof Error);
         assert.strictEqual(err.message, 'Test error');
       }
     });
@@ -97,8 +97,8 @@ describe('Promise Integration', function() {
       };
 
       const result = await remotes.invoke('test', [], []);
-      expect(result).to.be.an('array');
-      expect(result).to.deep.equal(['first', 'second', 'third']);
+      assert(Array.isArray(result));
+      assert.deepStrictEqual(result, ['first', 'second', 'third']);
     });
   });
 
@@ -131,7 +131,7 @@ describe('Promise Integration', function() {
       const ctx = new ContextBase(method, typeRegistry);
 
       remotes.invokeMethodInContext(ctx, (err) => {
-        expect(err).to.be.undefined;
+        assert.strictEqual(err, undefined);
         done();
       });
     });
@@ -193,7 +193,7 @@ describe('Promise Integration', function() {
       remotes.adapter = originalAdapter;
 
       // Verify adapter was enhanced
-      expect(remotes.serverAdapter._original_invoke).to.be.a('function');
+      assert.strictEqual(typeof remotes.serverAdapter._original_invoke, 'function');
     });
   });
 
@@ -215,7 +215,7 @@ describe('Promise Integration', function() {
       };
 
       remotes.invoke('TestMethod', [], [], function(err, result) {
-        expect(err).to.be.null;
+        assert.strictEqual(err, null);
         assert.strictEqual(result, 'result for TestMethod');
         done();
       });
