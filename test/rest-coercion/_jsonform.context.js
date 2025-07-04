@@ -9,12 +9,12 @@ const debug = require('debug')('test');
 const expect = require('chai').expect;
 const util = require('util');
 const format = util.format;
-const extend = util._extend;
+// Removed deprecated util._extend - using Object.assign() instead
 
 const EMPTY_BODY = {};
 
 module.exports = function createJsonBodyContext(ctx) {
-  return extend(Object.create(ctx), {
+  return Object.assign(Object.create(ctx), {
     /** Send a request with an empty body (that is still valid JSON) */
     EMPTY_BODY: EMPTY_BODY,
     verifyTestCases: verifyTestCases,
