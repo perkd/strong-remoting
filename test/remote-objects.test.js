@@ -9,7 +9,7 @@
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
 
-const { expect } = require('../test-config'); // Use native expect interface
+// No custom expect needed - use native assert directly
 const RemoteObjects = require('../');
 const RestAdapter = require('../lib/rest-adapter');
 const SharedClass = require('../lib/shared-class');
@@ -21,13 +21,11 @@ describe('RemoteObjects', function() {
   describe('RemoteObjects.handler()', function() {
     it('should throws an error if the provided adapter is not valid', function() {
       const invalidAdapter = function() {};
-      try {
+      assert.throws(() => {
         remotes.handler(invalidAdapter);
-      } catch (err) {
-        expect(err.message).to.contain('Invalid adapter class');
-        return;
-      }
-      throw new Error('should not get here');
+      }, (err) => {
+        return err.message.includes('Invalid adapter class');
+      });
     });
 
     it('should accept a provided adapter if valid', function() {
@@ -41,24 +39,24 @@ describe('RemoteObjects', function() {
 
       const sharedClass = new SharedClass('TempClass', TempClass);
       remotes.addClass(sharedClass);
-      expect(Object.keys(remotes._classes)).to.contain('TempClass');
+      assert(Object.keys(remotes._classes).includes('TempClass'));
 
       remotes.deleteClassByName('TempClass');
-      expect(Object.keys(remotes._classes)).to.not.contain('TempClass');
+      assert(!Object.keys(remotes._classes).includes('TempClass'));
     });
 
     it('removes the remote hooks', () => {
       remotes.before('TempClass.' + 'find', function(ctx, next) { next(); });
       remotes.after('TempClass.' + 'find', function(ctx, next) { next(); });
       remotes.afterError('TempClass.' + 'find', function(ctx, next) { next(); });
-      expect(Object.keys(remotes.listenerTree.before)).to.contain('TempClass');
-      expect(Object.keys(remotes.listenerTree.after)).to.contain('TempClass');
-      expect(Object.keys(remotes.listenerTree.afterError)).to.contain('TempClass');
+      assert(Object.keys(remotes.listenerTree.before).includes('TempClass'));
+      assert(Object.keys(remotes.listenerTree.after).includes('TempClass'));
+      assert(Object.keys(remotes.listenerTree.afterError).includes('TempClass'));
 
       remotes.deleteClassByName('TempClass');
-      expect(Object.keys(remotes.listenerTree.before)).to.not.contain('TempClass');
-      expect(Object.keys(remotes.listenerTree.after)).to.not.contain('TempClass');
-      expect(Object.keys(remotes.listenerTree.afterError)).to.not.contain('TempClass');
+      assert(!Object.keys(remotes.listenerTree.before).includes('TempClass'));
+      assert(!Object.keys(remotes.listenerTree.after).includes('TempClass'));
+      assert(!Object.keys(remotes.listenerTree.afterError).includes('TempClass'));
     });
   });
 
@@ -68,10 +66,10 @@ describe('RemoteObjects', function() {
 
       const registeredTypes = remotes._typeRegistry._types;
       remotes.defineObjectType('MyType', data => new MyType());
-      expect(Object.keys(registeredTypes)).to.contain('mytype');
+      assert(Object.keys(registeredTypes).includes('mytype'));
 
       remotes.deleteTypeByName('MyType');
-      expect(Object.keys(registeredTypes)).to.not.contain('mytype');
+      assert(!Object.keys(registeredTypes).includes('mytype'));
     });
   });
 });

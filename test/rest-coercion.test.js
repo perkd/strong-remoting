@@ -10,10 +10,10 @@ const { describe, it, before, after, beforeEach, afterEach } = require('node:tes
 const assert = require('node:assert');
 
 const debug = require('debug')('test');
-const { expect } = require('../test-config'); // Use native expect interface
+const { expect } = require('./test-config'); // Use native expect interface
 const express = require('express');
 const fs = require('fs');
-const supertest = require('supertest');
+const request = require('./helpers/native-http-test'); // Native HTTP testing
 const path = require('path');
 const qs = require('qs');
 
@@ -54,7 +54,7 @@ describe('Coercion in RestAdapter', function() {
       ctx.remoteObjects.handler('rest').apply(ctx.remoteObjects, arguments);
     });
     server = app.listen(0, '127.0.0.1', function() {
-      ctx.request = supertest('http://127.0.0.1:' + this.address().port);
+      ctx.request = request('http://127.0.0.1:' + this.address().port);
       done();
     });
     server.on('error', done);

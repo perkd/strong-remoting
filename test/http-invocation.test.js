@@ -8,12 +8,10 @@
 // Native Node.js test imports
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
-
-const assert = require('assert');
 const HttpInvocation = require('../lib/http-invocation');
 const SharedMethod = require('../lib/shared-method');
 const extend = require('util')._extend;
-const { expect } = require('../test-config'); // Use native expect interface
+const { expect } = require('./test-config'); // Use native expect interface
 const TypeRegistry = require('../lib/type-registry');
 
 describe('HttpInvocation', function() {
@@ -110,7 +108,8 @@ describe('HttpInvocation', function() {
         expect(inst).to.be.instanceOf(TestClass);
         assert.strictEqual(inst.foo, 'bar');
         done();
-      });
+      }); // End of transformReturnType callback
+      }); // End of Promise
 
       function TestClass(data) {
         this.foo = data.foo;
@@ -148,6 +147,7 @@ describe('HttpInvocation', function() {
         assert.strictEqual(insts[1].foo, 'grok');
         done();
       });
+      }); // End of Promise
 
       function TestClass(data) {
         this.foo = data.foo;
@@ -191,6 +191,7 @@ describe('HttpInvocation', function() {
         expect(err).to.have.property('extra', 'extra value');
         done();
       });
+      }); // End of Promise
     });
 
     it('should forward statusCode and non-object error response', function(t) {
@@ -217,6 +218,7 @@ describe('HttpInvocation', function() {
         expect(err).to.have.property('details', 'error body');
         done();
       });
+      }); // End of Promise
     });
 
     function transformReturnType(returns, typeName, typeFactoryFn, res, cb) {
@@ -336,9 +338,8 @@ describe('HttpInvocation', function() {
       };
       expect(inv.createRequest()).to.eql(expectedReq);
     });
-  });
 
-  it('handles a loopback filter as a body param for a POST request', function() {
+    it('handles a loopback filter as a body param for a POST request', function() {
     const accepts = [
       {arg: 'filter', type: 'object'},
     ];
@@ -363,6 +364,7 @@ describe('HttpInvocation', function() {
       },
     };
     expect(inv.createRequest()).to.eql(expectedReq);
+    });
   });
 });
 

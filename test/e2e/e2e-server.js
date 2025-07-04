@@ -6,12 +6,19 @@
 'use strict';
 
 // this server should be started before running tests in the e2e directory
+const express = require('express');
 const path = require('path');
 const FIXTURES = path.join(__dirname, 'fixtures');
 const remotes = require(path.join(FIXTURES, 'remotes'));
 
-require('http')
-  .createServer(remotes.handler('rest'))
-  .listen(3000, function() {
-    console.log('e2e server listening...');
-  });
+const app = express();
+
+// Add middleware for parsing JSON
+app.use(express.json());
+
+// Add the remotes handler
+app.use(remotes.handler('rest'));
+
+app.listen(3000, function() {
+  console.log('e2e server listening...');
+});

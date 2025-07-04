@@ -5,12 +5,14 @@
 
 'use strict';
 
-const assert = require('assert');
+// Native Node.js test imports
+const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
+const assert = require('node:assert');
 const RemoteObjects = require('../');
-const expect = require('chai').expect;
+const { expect } = require('./test-config'); // Use native expect interface
 const SharedClass = require('../lib/shared-class');
 const express = require('express');
-const request = require('supertest');
+const request = require('./helpers/native-http-test'); // Native HTTP testing
 const fs = require('fs');
 const es = require('event-stream');
 const http = require('http');

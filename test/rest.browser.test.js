@@ -8,14 +8,12 @@
 // Native Node.js test imports
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
-
-const assert = require('assert');
 const extend = require('util')._extend;
 const inherits = require('util').inherits;
 const RemoteObjects = require('../');
 const express = require('express');
-const request = require('supertest');
-const { expect } = require('../test-config'); // Use native expect interface
+const request = require('./helpers/native-http-test'); // Native HTTP testing
+const { expect } = require('./test-config'); // Use native expect interface
 const factory = require('./helpers/shared-objects-factory.js');
 
 describe('strong-remoting-rest', function() {

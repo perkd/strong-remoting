@@ -9,7 +9,7 @@
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
 
-const { expect } = require('../test-config'); // Use native expect interface
+const { expect } = require('./test-config'); // Use native expect interface
 const RemoteObjects = require('../');
 
 describe('Enhanced Hook System', function() {
@@ -51,7 +51,8 @@ describe('Enhanced Hook System', function() {
         assert.strictEqual(ctx.hookData, 'callback-before');
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should execute callback-style after hooks', function(t) {
       return new Promise((resolve, reject) => {
@@ -83,7 +84,8 @@ describe('Enhanced Hook System', function() {
         assert.strictEqual(ctx.result, 'original modified');
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should handle callback-style hook errors', function(t) {
       return new Promise((resolve, reject) => {
@@ -110,8 +112,9 @@ describe('Enhanced Hook System', function() {
         assert.strictEqual(err.message, 'Hook error');
         done();
       });
-    });
-  });
+      }); // End of Promise
+    }); // End of it
+  }); // End of describe
 
   describe('Async/await hooks (new functionality)', function() {
     it('should execute async before hooks', function(t) {
@@ -144,7 +147,8 @@ describe('Enhanced Hook System', function() {
         assert.strictEqual(ctx.hookData, 'async-before');
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should execute Promise-returning hooks', function(t) {
       return new Promise((resolve, reject) => {
@@ -180,7 +184,8 @@ describe('Enhanced Hook System', function() {
         assert.strictEqual(ctx.hookData, 'promise-before');
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should handle async hook errors', function(t) {
       return new Promise((resolve, reject) => {
@@ -208,7 +213,8 @@ describe('Enhanced Hook System', function() {
         assert.strictEqual(err.message, 'Async hook error');
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should handle Promise rejection', function(t) {
       return new Promise((resolve, reject) => {
@@ -235,8 +241,9 @@ describe('Enhanced Hook System', function() {
         assert.strictEqual(err.message, 'Promise rejection');
         done();
       });
-    });
-  });
+      }); // End of Promise
+    }); // End of it
+  }); // End of describe
 
   describe('Synchronous hooks', function() {
     it('should execute synchronous hooks', function(t) {
@@ -268,7 +275,8 @@ describe('Enhanced Hook System', function() {
         assert.strictEqual(ctx.hookData, 'sync-before');
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should handle synchronous hook errors', function(t) {
       return new Promise((resolve, reject) => {
@@ -295,8 +303,9 @@ describe('Enhanced Hook System', function() {
         assert.strictEqual(err.message, 'Sync hook error');
         done();
       });
-    });
-  });
+      }); // End of Promise
+    }); // End of it
+  }); // End of describe
 
   describe('Mixed hook types', function() {
     it('should execute multiple hooks of different types in order', function(t) {
@@ -356,7 +365,8 @@ describe('Enhanced Hook System', function() {
         assert.strictEqual(ctx.data, 'callback-async-sync-promise');
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should stop execution on first error', function(t) {
       return new Promise((resolve, reject) => {
@@ -397,8 +407,9 @@ describe('Enhanced Hook System', function() {
         expect(executionOrder).to.deep.equal(['first', 'second']);
         done();
       });
-    });
-  });
+      }); // End of Promise
+    }); // End of it
+  }); // End of describe
 
   describe('Hook patterns and wildcards', function() {
     it('should execute hooks with wildcard patterns', function(t) {
@@ -430,7 +441,8 @@ describe('Enhanced Hook System', function() {
         assert.strictEqual(ctx.wildcardHook, true);
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should execute hooks with double wildcard patterns', function(t) {
       return new Promise((resolve, reject) => {
@@ -461,6 +473,7 @@ describe('Enhanced Hook System', function() {
         assert.strictEqual(ctx.globalHook, true);
         done();
       });
-    });
-  });
-});
+      }); // End of Promise
+    }); // End of it
+  }); // End of describe
+}); // End of main describe

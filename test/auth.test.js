@@ -11,7 +11,7 @@ const assert = require('node:assert');
 
 const auth = require('http-auth');
 const crypto = require('crypto');
-const expect = require('./helpers/expect');
+const { expect } = require('./test-config'); // Use native expect interface
 const express = require('express');
 const fmt = require('util').format;
 
@@ -28,19 +28,40 @@ describe('support for HTTP Authentication', function() {
     remotes.exports.User = User;
   });
 
-  before(function setupServer(done) {
+  before(async function setupServer() {
     const app = express();
-    const basic = auth.basic({realm: 'testing'}, function(u, p, cb) {
-      cb(u === 'basicuser' && p === 'basicpass');
+
+    // Simple test route first
+    app.get('/test', (req, res) => {
+      res.json({ message: 'Server is working' });
     });
-    const digest = auth.digest({realm: 'testing'}, function(user, cb) {
-      cb(user === 'digestuser' ? md5('digestuser:testing:digestpass') : null);
+
+    try {
+      const basic = auth.basic({realm: 'testing'}, function(u, p, cb) {
+        cb(u === 'basicuser' && p === 'basicpass');
+      });
+      const digest = auth.digest({realm: 'testing'}, function(user, cb) {
+        cb(user === 'digestuser' ? md5('digestuser:testing:digestpass') : null);
+      });
+
+      app.use('/noAuth', remotes.handler('rest'));
+      app.use('/basicAuth', auth.connect(basic), remotes.handler('rest'));
+      app.use('/digestAuth', auth.connect(digest), remotes.handler('rest'));
+      app.use('/bearerAuth', bearerMiddleware('bearertoken'), remotes.handler('rest'));
+    } catch (error) {
+      console.error('Auth setup failed:', error);
+      throw error;
+    }
+
+    await new Promise((resolve, reject) => {
+      server = app.listen(0, '127.0.0.1', function(err) {
+        if (err) {
+          console.error('Server setup failed:', err);
+          return reject(err);
+        }
+        resolve();
+      });
     });
-    app.use('/noAuth', remotes.handler('rest'));
-    app.use('/basicAuth', auth.connect(basic), remotes.handler('rest'));
-    app.use('/digestAuth', auth.connect(digest), remotes.handler('rest'));
-    app.use('/bearerAuth', bearerMiddleware('bearertoken'), remotes.handler('rest'));
-    server = app.listen(0, '127.0.0.1', done);
   });
 
   beforeEach(function() {

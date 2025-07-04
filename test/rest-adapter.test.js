@@ -8,8 +8,7 @@
 // Native Node.js test imports
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
-
-const assert = require('assert');
+const { expect } = require('./test-config'); // Use native expect interface
 const HttpInvocation = require('../lib/http-invocation');
 const extend = require('util')._extend;
 const inherits = require('util').inherits;
@@ -17,7 +16,7 @@ const RemoteObjects = require('../');
 const RestAdapter = require('../lib/rest-adapter');
 const SharedClass = require('../lib/shared-class');
 const SharedMethod = require('../lib/shared-method');
-const { expect } = require('../test-config'); // Use native expect interface
+// Use native assert directly
 const factory = require('./helpers/shared-objects-factory.js');
 function NOOP() {}
 
@@ -458,7 +457,8 @@ describe('RestAdapter', function() {
         assert(afterCalled);
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should call beforeRemote hook with request object', function(t) {
       return new Promise((resolve, reject) => {
@@ -483,7 +483,8 @@ describe('RestAdapter', function() {
         assert.strictEqual(_req, req);
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should call afterRemote hook with response object', function(t) {
       return new Promise((resolve, reject) => {
@@ -508,7 +509,8 @@ describe('RestAdapter', function() {
         assert.strictEqual(_res, res);
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     function givenRestStaticMethod(methodConfig, classConfig) {
       const name = 'testMethod';

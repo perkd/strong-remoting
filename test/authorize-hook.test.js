@@ -9,7 +9,7 @@
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
 
-const expect = require('./helpers/expect');
+const { expect } = require('./test-config'); // Use native expect interface
 const express = require('express');
 const RemoteObjects = require('../');
 const User = require('./e2e/fixtures/user');
@@ -19,22 +19,27 @@ describe('authorization hook', function() {
   let server, remotes;
 
   // Create a fresh remotes instance for the server setup
-  before(function setupServer(done) {
+  before(async function setupServer() {
     const app = express();
     remotes = RemoteObjects.create();
     remotes.exports.User = User;
     app.use(remotes.handler('rest'));
-    server = app.listen(0, '127.0.0.1', done);
+
+    await new Promise((resolve, reject) => {
+      server = app.listen(0, '127.0.0.1', function(err) {
+        if (err) {
+          console.error('Server setup failed:', err);
+          return reject(err);
+        }
+        resolve();
+      });
+    });
   });
 
-  beforeEach(function() {
-    // Create a completely fresh remotes instance for each test to avoid state pollution
-    remotes = RemoteObjects.create();
-    remotes.exports.User = User;
-  });
-
-  after(function teardownServer(done) {
-    server.close(done);
+  after(async function teardownServer() {
+    await new Promise((resolve) => {
+      server.close(resolve);
+    });
   });
 
   describe('given a remotes object with an authorization hook', function() {
@@ -70,8 +75,9 @@ describe('authorization hook', function() {
             done(assertionError);
           }
         });
-    });
-  });
+      }); // End of Promise
+    }); // End of it
+  }); // End of describe
 
   function invokeRemote(port, callback) {
     const url = 'http://127.0.0.1:' + port;
@@ -81,4 +87,4 @@ describe('authorization hook', function() {
     remotes.connect(url, 'rest');
     remotes.invoke(method, args, callback);
   }
-});
+}); // End of main describe

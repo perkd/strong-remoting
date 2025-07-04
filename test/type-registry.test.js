@@ -9,7 +9,7 @@
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
 
-const { expect } = require('../test-config'); // Use native expect interface
+// Use native assert directly
 const TypeRegistry = require('../lib/type-registry');
 
 describe('TypeRegistry', function() {
@@ -19,12 +19,12 @@ describe('TypeRegistry', function() {
   });
 
   it('refuses to override built-in file type', function() {
-    expect(function() {
+    assert.throws(function() {
       registry.registerType('File', {
         fromTypedValue: function() {},
         fromSloppyValue: function() {},
         validate: function() {},
       });
-    }).to.throw(/file/);
+    }, /file/);
   });
 });

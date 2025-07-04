@@ -8,10 +8,8 @@
 // Native Node.js test imports
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
-
-const assert = require('assert');
 const extend = require('util')._extend;
-const { expect } = require('../test-config'); // Use native expect interface
+// Use native assert directly
 const SharedClass = require('../lib/shared-class');
 const factory = require('./helpers/shared-objects-factory.js');
 const RemoteObjects = require('../');

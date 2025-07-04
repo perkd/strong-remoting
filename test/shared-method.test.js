@@ -8,8 +8,6 @@
 // Native Node.js test imports
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
-
-const assert = require('assert');
 const extend = require('util')._extend;
 const expect = require('./helpers/expect');
 const Context = require('../lib/context-base');

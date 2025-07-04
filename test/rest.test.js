@@ -8,15 +8,13 @@
 // Native Node.js test imports
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
-
-const assert = require('assert');
 const extend = require('util')._extend;
 const inherits = require('util').inherits;
 const RemoteObjects = require('../');
 const SharedClass = RemoteObjects.SharedClass;
 const express = require('express');
-const request = require('supertest');
-const expect = require('./helpers/expect');
+const request = require('./helpers/native-http-test'); // Native HTTP testing
+const { expect } = require('./test-config'); // Use native expect interface
 const factory = require('./helpers/shared-objects-factory.js');
 const Promise = global.Promise || require('bluebird');
 const Readable = require('stream').Readable;

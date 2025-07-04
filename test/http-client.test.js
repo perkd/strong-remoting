@@ -9,7 +9,7 @@
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
 
-const { expect } = require('../test-config'); // Use native expect interface
+const { expect } = require('./test-config'); // Use native expect interface
 const httpClient = require('../lib/http-client');
 const { HttpClient } = require('../lib/http-client');
 const express = require('express');
@@ -18,7 +18,7 @@ const http = require('http');
 describe('HttpClient', function() {
   let server, app, baseUrl;
 
-  before(function(done) {
+  before(async function() {
     app = express();
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
@@ -49,15 +49,25 @@ describe('HttpClient', function() {
     });
 
     server = http.createServer(app);
-    server.listen(0, () => {
-      const port = server.address().port;
-      baseUrl = `http://localhost:${port}`;
-      done();
+
+    await new Promise((resolve, reject) => {
+      server.listen(0, (err) => {
+        if (err) {
+          console.error('Server failed to start:', err);
+          return reject(err);
+        }
+        const port = server.address().port;
+        baseUrl = `http://localhost:${port}`;
+
+        resolve();
+      });
     });
   });
 
-  after(function(done) {
-    server.close(done);
+  after(async function() {
+    await new Promise((resolve) => {
+      server.close(resolve);
+    });
   });
 
   describe('Request-compatible interface', function() {
@@ -76,7 +86,8 @@ describe('HttpClient', function() {
         expect(body).to.deep.equal({ message: 'GET success', query: {} });
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should make GET request with options object', function(t) {
       return new Promise((resolve, reject) => {
@@ -97,7 +108,8 @@ describe('HttpClient', function() {
         expect(body.query).to.deep.equal({ param: 'value' });
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should make POST request with JSON body', function(t) {
       return new Promise((resolve, reject) => {
@@ -118,7 +130,8 @@ describe('HttpClient', function() {
         expect(body.body).to.deep.equal({ test: 'data' });
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should handle authentication with bearer token', function(t) {
       return new Promise((resolve, reject) => {
@@ -138,7 +151,8 @@ describe('HttpClient', function() {
         assert.strictEqual(body.auth, 'Bearer test-token');
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should handle authentication with username/password', function(t) {
       return new Promise((resolve, reject) => {
@@ -158,7 +172,8 @@ describe('HttpClient', function() {
         expect(body.auth).to.match(/^Basic /);
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should handle HTTP error responses', function(t) {
       return new Promise((resolve, reject) => {
@@ -175,7 +190,8 @@ describe('HttpClient', function() {
         assert.strictEqual(body.error.message, 'Test error');
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should handle network errors', function(t) {
       return new Promise((resolve, reject) => {
@@ -186,7 +202,6 @@ describe('HttpClient', function() {
             resolve();
           }
         };
-      this.timeout(5000); // Increase timeout for network error test
       // Use a valid URL format but unreachable port to trigger ECONNREFUSED
       httpClient('http://127.0.0.1:99999/nonexistent', (err, res, body) => {
         try {
@@ -198,8 +213,9 @@ describe('HttpClient', function() {
           done(assertionError);
         }
       });
-    });
-  });
+      }); // End of Promise
+    }); // End of it
+  }); // End of describe
 
   describe('Promise interface', function() {
     it('should return promise when no callback provided', async function() {
@@ -243,7 +259,8 @@ describe('HttpClient', function() {
         
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should handle json: true option', function(t) {
       return new Promise((resolve, reject) => {
@@ -263,7 +280,8 @@ describe('HttpClient', function() {
         assert.strictEqual(body.message, 'GET success');
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should preserve all headers', function(t) {
       return new Promise((resolve, reject) => {
@@ -285,8 +303,9 @@ describe('HttpClient', function() {
         assert.strictEqual(res.statusCode, 200);
         done();
       });
-    });
-  });
+      }); // End of Promise
+    }); // End of it
+  }); // End of describe
 
   describe('Error handling compatibility', function() {
     it('should handle SyntaxError for 204 responses', function(t) {
@@ -311,7 +330,8 @@ describe('HttpClient', function() {
         assert.strictEqual(res.statusCode, 204);
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should preserve error properties for HTTP errors', function(t) {
       return new Promise((resolve, reject) => {
@@ -328,8 +348,9 @@ describe('HttpClient', function() {
         expect(body).to.have.property('error');
         done();
       });
-    });
-  });
+      }); // End of Promise
+    }); // End of it
+  }); // End of describe
 
   describe('HttpClient class', function() {
     it('should create instance with default options', function() {
@@ -362,7 +383,8 @@ describe('HttpClient', function() {
         expect(err).to.be.an('error'); // Should fail due to missing URL
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should preserve query parameters in URL', function(t) {
       return new Promise((resolve, reject) => {
@@ -378,6 +400,7 @@ describe('HttpClient', function() {
         assert.strictEqual(body.query.existing, 'param');
         done();
       });
-    });
-  });
-});
+      }); // End of Promise
+    }); // End of it
+  }); // End of describe
+}); // End of main describe

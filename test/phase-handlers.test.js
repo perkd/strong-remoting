@@ -9,7 +9,7 @@
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
 
-const { expect } = require('../test-config'); // Use native expect interface
+const { expect } = require('./test-config'); // Use native expect interface
 const express = require('express');
 const RemoteObjects = require('../');
 const User = require('./e2e/fixtures/user');
@@ -17,7 +17,7 @@ const User = require('./e2e/fixtures/user');
 describe('phase handlers', function() {
   let server, remotes, clientRemotes;
 
-  beforeEach(function setupServer(done) {
+  beforeEach(async function setupServerAndClient() {
     const app = express();
     remotes = RemoteObjects.create();
     remotes.exports.User = User;
@@ -25,18 +25,24 @@ describe('phase handlers', function() {
       // always build a new handler to pick new methods added by tests
       remotes.handler('rest')(req, res, next);
     });
-    server = app.listen(0, '127.0.0.1', done);
+
+    await new Promise((resolve, reject) => {
+      server = app.listen(0, '127.0.0.1', function(err) {
+        if (err) return reject(err);
+        // Setup client after server is ready
+        clientRemotes = RemoteObjects.create();
+        clientRemotes.exports.User = User;
+        const url = 'http://127.0.0.1:' + server.address().port;
+        clientRemotes.connect(url, 'rest');
+        resolve();
+      });
+    });
   });
 
-  beforeEach(function setupClient() {
-    clientRemotes = RemoteObjects.create();
-    clientRemotes.exports.User = User;
-    const url = 'http://127.0.0.1:' + server.address().port;
-    clientRemotes.connect(url, 'rest');
-  });
-
-  afterEach(function teardownServer(done) {
-    server.close(done);
+  afterEach(async function teardownServer() {
+    await new Promise((resolve) => {
+      server.close(resolve);
+    });
   });
 
   it('has built-in phases "auth" and "invoke"', function() {
@@ -84,7 +90,16 @@ describe('phase handlers', function() {
       ]);
       done();
     });
-  });
+    }); // End of Promise
+  }); // End of it
+
+  function invokeRemote(method, callback) {
+    const args = [];
+    if (!clientRemotes) {
+      return callback(new Error('clientRemotes is not initialized'));
+    }
+    clientRemotes.invoke(method, args, callback);
+  }
 
   describe('registerPhaseHandler', function() {
     let handlersRun;
@@ -135,7 +150,8 @@ describe('phase handlers', function() {
         ]);
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('matches prototype methods using wildcards', function(t) {
       return new Promise((resolve, reject) => {
@@ -156,11 +172,7 @@ describe('phase handlers', function() {
         ]);
         done();
       });
-    });
-  });
-
-  function invokeRemote(method, callback) {
-    const args = [];
-    clientRemotes.invoke(method, args, callback);
-  }
-});
+      }); // End of Promise
+    }); // End of it
+  }); // End of describe
+}); // End of main describe

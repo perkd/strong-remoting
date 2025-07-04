@@ -9,7 +9,7 @@
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
 
-const { expect } = require('../test-config'); // Use native expect interface
+const { expect } = require('./test-config'); // Use native expect interface
 const RemoteObjects = require('../');
 const SharedClass = require('../lib/shared-class');
 const ContextBase = require('../lib/context-base');
@@ -158,8 +158,9 @@ describe('Promise Integration', function() {
       await remotes.invokeMethodInContext(ctx);
       // If we get here without error, the Promise resolved successfully
       assert.strictEqual(true, true);
-    });
-  });
+      }); // End of Promise
+    }); // End of it
+  }); // End of describe
 
   describe('Connect Enhancement', function() {
     it('should enhance adapter when connected', function() {
@@ -206,7 +207,6 @@ describe('Promise Integration', function() {
             resolve();
           }
         };
-      this.timeout(5000);
       // Mock the adapter to test callback compatibility
       remotes.serverAdapter = {
         invoke: function(method, ctorArgs, args, callback) {
@@ -219,7 +219,8 @@ describe('Promise Integration', function() {
         assert.strictEqual(result, 'result for TestMethod');
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     it('should handle argument variations correctly', function(t) {
       return new Promise((resolve, reject) => {
@@ -244,6 +245,7 @@ describe('Promise Integration', function() {
         assert.strictEqual(result, 'success');
         done();
       });
-    });
-  });
-});
+      }); // End of Promise
+    }); // End of it
+  }); // End of describe (Backward Compatibility Verification)
+}); // End of main describe (Promise Integration)
