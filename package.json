@@ -23,7 +23,7 @@
     "security:audit": "npm audit --audit-level=moderate",
     "security:check": "npm audit --audit-level=high",
     "test": "npm run test:unit && npm run test:e2e",
-    "test:unit": "c8 node --test --test-reporter=spec test/*.test.js test/rest-coercion/*.test.js",
+    "test:unit": "c8 node --test --test-reporter=spec test/*.test.js test/rest-coercion/*.suite.js",
     "test:e2e": "node scripts/e2e-test-runner.js",
     "test:watch": "node scripts/test-runner.js --watch",
     "test:security": "npm run security:audit && npm test",
