@@ -5,7 +5,11 @@
 
 'use strict';
 
-const expect = require('chai').expect;
+// Native Node.js test imports
+const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
+const assert = require('node:assert');
+
+// Use native assert directly
 const TypeRegistry = require('../lib/type-registry');
 
 describe('TypeRegistry', function() {
@@ -15,12 +19,12 @@ describe('TypeRegistry', function() {
   });
 
   it('refuses to override built-in file type', function() {
-    expect(function() {
+    assert.throws(function() {
       registry.registerType('File', {
         fromTypedValue: function() {},
         fromSloppyValue: function() {},
         validate: function() {},
       });
-    }).to.throw(/file/);
+    }, /file/);
   });
 });

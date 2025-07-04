@@ -5,7 +5,11 @@
 
 'use strict';
 
-const expect = require('chai').expect;
+// Native Node.js test imports
+const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
+const assert = require('node:assert');
+
+const { expect } = require('./test-config'); // Use native expect interface
 const RemoteObjects = require('../');
 
 describe('Enhanced Hook System', function() {
@@ -16,7 +20,15 @@ describe('Enhanced Hook System', function() {
   });
 
   describe('Callback-style hooks (backward compatibility)', function() {
-    it('should execute callback-style before hooks', function(done) {
+    it('should execute callback-style before hooks', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       let hookExecuted = false;
       
       remotes.before('test.method', function(ctx, next) {
@@ -35,13 +47,22 @@ describe('Enhanced Hook System', function() {
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
         expect(err).to.be.undefined;
-        expect(hookExecuted).to.be.true;
-        expect(ctx.hookData).to.equal('callback-before');
+        assert.strictEqual(hookExecuted, true);
+        assert.strictEqual(ctx.hookData, 'callback-before');
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
-    it('should execute callback-style after hooks', function(done) {
+    it('should execute callback-style after hooks', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       let hookExecuted = false;
       
       remotes.after('test.method', function(ctx, next) {
@@ -59,13 +80,22 @@ describe('Enhanced Hook System', function() {
       
       remotes.execHooks('after', method, {}, ctx, function(err) {
         expect(err).to.be.undefined;
-        expect(hookExecuted).to.be.true;
-        expect(ctx.result).to.equal('original modified');
+        assert.strictEqual(hookExecuted, true);
+        assert.strictEqual(ctx.result, 'original modified');
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
-    it('should handle callback-style hook errors', function(done) {
+    it('should handle callback-style hook errors', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       remotes.before('test.method', function(ctx, next) {
         next(new Error('Hook error'));
       });
@@ -79,14 +109,23 @@ describe('Enhanced Hook System', function() {
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
         expect(err).to.be.an('error');
-        expect(err.message).to.equal('Hook error');
+        assert.strictEqual(err.message, 'Hook error');
         done();
       });
-    });
-  });
+      }); // End of Promise
+    }); // End of it
+  }); // End of describe
 
   describe('Async/await hooks (new functionality)', function() {
-    it('should execute async before hooks', function(done) {
+    it('should execute async before hooks', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       let hookExecuted = false;
       
       remotes.before('test.method', async function(ctx) {
@@ -104,13 +143,22 @@ describe('Enhanced Hook System', function() {
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
         expect(err).to.be.undefined;
-        expect(hookExecuted).to.be.true;
-        expect(ctx.hookData).to.equal('async-before');
+        assert.strictEqual(hookExecuted, true);
+        assert.strictEqual(ctx.hookData, 'async-before');
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
-    it('should execute Promise-returning hooks', function(done) {
+    it('should execute Promise-returning hooks', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       let hookExecuted = false;
       
       remotes.before('test.method', function(ctx) {
@@ -132,13 +180,22 @@ describe('Enhanced Hook System', function() {
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
         expect(err).to.be.undefined;
-        expect(hookExecuted).to.be.true;
-        expect(ctx.hookData).to.equal('promise-before');
+        assert.strictEqual(hookExecuted, true);
+        assert.strictEqual(ctx.hookData, 'promise-before');
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
-    it('should handle async hook errors', function(done) {
+    it('should handle async hook errors', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       remotes.before('test.method', async function(ctx) {
         await new Promise(resolve => setTimeout(resolve, 10));
         throw new Error('Async hook error');
@@ -153,12 +210,21 @@ describe('Enhanced Hook System', function() {
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
         expect(err).to.be.an('error');
-        expect(err.message).to.equal('Async hook error');
+        assert.strictEqual(err.message, 'Async hook error');
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
-    it('should handle Promise rejection', function(done) {
+    it('should handle Promise rejection', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       remotes.before('test.method', function(ctx) {
         return Promise.reject(new Error('Promise rejection'));
       });
@@ -172,14 +238,23 @@ describe('Enhanced Hook System', function() {
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
         expect(err).to.be.an('error');
-        expect(err.message).to.equal('Promise rejection');
+        assert.strictEqual(err.message, 'Promise rejection');
         done();
       });
-    });
-  });
+      }); // End of Promise
+    }); // End of it
+  }); // End of describe
 
   describe('Synchronous hooks', function() {
-    it('should execute synchronous hooks', function(done) {
+    it('should execute synchronous hooks', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       let hookExecuted = false;
       
       remotes.before('test.method', function(ctx) {
@@ -196,13 +271,22 @@ describe('Enhanced Hook System', function() {
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
         expect(err).to.be.undefined;
-        expect(hookExecuted).to.be.true;
-        expect(ctx.hookData).to.equal('sync-before');
+        assert.strictEqual(hookExecuted, true);
+        assert.strictEqual(ctx.hookData, 'sync-before');
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
-    it('should handle synchronous hook errors', function(done) {
+    it('should handle synchronous hook errors', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       remotes.before('test.method', function(ctx) {
         throw new Error('Sync hook error');
       });
@@ -216,14 +300,23 @@ describe('Enhanced Hook System', function() {
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
         expect(err).to.be.an('error');
-        expect(err.message).to.equal('Sync hook error');
+        assert.strictEqual(err.message, 'Sync hook error');
         done();
       });
-    });
-  });
+      }); // End of Promise
+    }); // End of it
+  }); // End of describe
 
   describe('Mixed hook types', function() {
-    it('should execute multiple hooks of different types in order', function(done) {
+    it('should execute multiple hooks of different types in order', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       const executionOrder = [];
       
       // Callback-style hook
@@ -269,12 +362,21 @@ describe('Enhanced Hook System', function() {
       remotes.execHooks('before', method, {}, ctx, function(err) {
         expect(err).to.be.undefined;
         expect(executionOrder).to.deep.equal(['callback', 'async', 'sync', 'promise']);
-        expect(ctx.data).to.equal('callback-async-sync-promise');
+        assert.strictEqual(ctx.data, 'callback-async-sync-promise');
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
-    it('should stop execution on first error', function(done) {
+    it('should stop execution on first error', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       const executionOrder = [];
       
       remotes.before('test.method', function(ctx, next) {
@@ -301,15 +403,24 @@ describe('Enhanced Hook System', function() {
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
         expect(err).to.be.an('error');
-        expect(err.message).to.equal('Second hook error');
+        assert.strictEqual(err.message, 'Second hook error');
         expect(executionOrder).to.deep.equal(['first', 'second']);
         done();
       });
-    });
-  });
+      }); // End of Promise
+    }); // End of it
+  }); // End of describe
 
   describe('Hook patterns and wildcards', function() {
-    it('should execute hooks with wildcard patterns', function(done) {
+    it('should execute hooks with wildcard patterns', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       let hookExecuted = false;
       
       remotes.before('test.*', async function(ctx) {
@@ -326,13 +437,22 @@ describe('Enhanced Hook System', function() {
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
         expect(err).to.be.undefined;
-        expect(hookExecuted).to.be.true;
-        expect(ctx.wildcardHook).to.be.true;
+        assert.strictEqual(hookExecuted, true);
+        assert.strictEqual(ctx.wildcardHook, true);
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
-    it('should execute hooks with double wildcard patterns', function(done) {
+    it('should execute hooks with double wildcard patterns', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       let hookExecuted = false;
       
       remotes.before('**', async function(ctx) {
@@ -349,10 +469,11 @@ describe('Enhanced Hook System', function() {
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
         expect(err).to.be.undefined;
-        expect(hookExecuted).to.be.true;
-        expect(ctx.globalHook).to.be.true;
+        assert.strictEqual(hookExecuted, true);
+        assert.strictEqual(ctx.globalHook, true);
         done();
       });
-    });
-  });
-});
+      }); // End of Promise
+    }); // End of it
+  }); // End of describe
+}); // End of main describe

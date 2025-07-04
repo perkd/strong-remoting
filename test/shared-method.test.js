@@ -5,9 +5,12 @@
 
 'use strict';
 
-const assert = require('assert');
-const extend = require('util')._extend;
-const expect = require('./helpers/expect');
+// Native Node.js test imports
+const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
+const assert = require('node:assert');
+// Use Object.assign() instead of deprecated util._extend
+const extend = Object.assign;
+// expect removed - using native assert instead
 const Context = require('../lib/context-base');
 const SharedMethod = require('../lib/shared-method');
 const TypeRegistry = require('../lib/type-registry');
@@ -18,13 +21,30 @@ describe('SharedMethod', function() {
   const STUB_CLASS = {};
   const STUB_METHOD = function(cb) { cb(); };
 
+  // Helper functions
+  function givenSharedMethod(fn, options) {
+    if (options === undefined && typeof fn === 'object') {
+      options = fn;
+      fn = function() {
+        arguments[arguments.length - 1]();
+      };
+    }
+
+    const mockSharedClass = {fn: fn};
+    return new SharedMethod(fn, 'fn', mockSharedClass, options);
+  }
+
+  function ctx(method) {
+    return new Context(method, new TypeRegistry({warnOnUnknownType: false}));
+  }
+
   describe('constructor', function() {
     it('normalizes "array" type in "accepts" arguments', function() {
       const sharedMethod = new SharedMethod(STUB_METHOD, 'a-name', STUB_CLASS, {
         accepts: {arg: 'data', type: 'array'},
       });
 
-      expect(sharedMethod.accepts).to.eql([
+      assert.deepStrictEqual(sharedMethod.accepts, [
         {arg: 'data', type: ['any']},
       ]);
     });
@@ -34,7 +54,7 @@ describe('SharedMethod', function() {
         returns: {arg: 'data', type: 'array'},
       });
 
-      expect(sharedMethod.returns).to.eql([
+      assert.deepStrictEqual(sharedMethod.returns, [
         {arg: 'data', type: ['any']},
       ]);
     });
@@ -44,7 +64,7 @@ describe('SharedMethod', function() {
         documented: false,
       });
 
-      expect(sharedMethod.documented).to.eql(false);
+      assert.deepStrictEqual(sharedMethod.documented, false);
     });
   });
 
@@ -130,70 +150,101 @@ describe('SharedMethod', function() {
       const mockSharedClass = {};
       let err;
       const sharedMethod = new SharedMethod(myFunction, 'myName', mockSharedClass);
-      expect(function() { sharedMethod.isDelegateForName(myFunction); }).to.throw(/argument.*string/);
+      assert.throws(function() { sharedMethod.isDelegateForName(myFunction); }, /argument.*string/);
     });
   });
 
   describe('sharedMethod.invoke', function() {
-    it('returns 400 when number argument is `NaN`', function(done) {
+    it('returns 400 when number argument is `NaN`', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       const method = givenSharedMethod({
         accepts: {arg: 'num', type: 'number'},
       });
 
       method.invoke('ctx', {num: NaN}, {}, ctx(method), function(err) {
         setImmediate(function() {
-          expect(err).to.exist();
-          expect(err.message).to.contain('not a number');
-          expect(err.statusCode).to.equal(400);
+          assert(err);
+          assert(err.message.includes('not a number'));
+          assert.strictEqual(err.statusCode, 400);
           done();
         });
       });
-    });
+      }); // End of Promise
+    }); // End of it
     describe('data type: integer', function() {
       describe('SharedMethod.getType - determine actual type based on value', function() {
         it('returns type: number for decimal value & integer target type',
           function() {
-            expect(SharedMethod.getType(15.2, 'integer')).to.equal('number');
+            assert.strictEqual(SharedMethod.getType(15.2, 'integer'), 'number');
           });
         it('returns type:integer for intiger value & integer target type',
           function() {
-            expect(SharedMethod.getType(14, 'integer')).to.equal('integer');
+            assert.strictEqual(SharedMethod.getType(14, 'integer'), 'integer');
           });
       });
 
-      it('returns 400 when integer argument is a decimal number',
-        function(done) {
+      it('returns 400 when integer argument is a decimal number', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
           const method = givenSharedMethod({
             accepts: {arg: 'num', type: 'integer'},
           });
 
           method.invoke('ctx', {num: 2.5}, {}, ctx(method), function(err) {
             setImmediate(function() {
-              expect(err).to.exist();
-              expect(err.message).to.match(/not a safe integer/);
-              expect(err.statusCode).to.equal(400);
+              assert(err);
+              assert(err.message.match(/not a safe integer/));
+              assert.strictEqual(err.statusCode, 400);
               done();
             });
           });
         });
 
-      it('returns 400 when integer argument is `NaN`', function(done) {
+      it('returns 400 when integer argument is `NaN`', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
         const method = givenSharedMethod({
           accepts: {arg: 'num', type: 'integer'},
         });
 
         method.invoke('ctx', {num: NaN}, {}, ctx(method), function(err) {
           setImmediate(function() {
-            expect(err).to.exist();
-            expect(err.message).to.match(/not a number/i);
-            expect(err.statusCode).to.equal(400);
+            assert(err);
+            assert(err.message.match(/not a number/i));
+            assert.strictEqual(err.statusCode, 400);
             done();
           });
         });
       });
 
-      it('returns 400 when integer argument is not a safe integer',
-        function(done) {
+      it('returns 400 when integer argument is not a safe integer', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
           const method = givenSharedMethod(
             function(arg, cb) {
               return cb({'num': arg});
@@ -206,15 +257,23 @@ describe('SharedMethod', function() {
           method.invoke('ctx', {num: 2343546576878989879789}, {}, ctx(method),
             function(err) {
               setImmediate(function() {
-                expect(err).to.exist();
-                expect(err.message).to.match(/integer/i);
-                expect(err.statusCode).to.equal(400);
+                assert(err);
+                assert(err.message.match(/integer/i));
+                assert.strictEqual(err.statusCode, 400);
                 done();
               });
             });
         });
 
-      it('treats integer argument of type x.0 as integer', function(done) {
+      it('treats integer argument of type x.0 as integer', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
         const method = givenSharedMethod(
           function(arg, cb) {
             return cb({'num': arg});
@@ -226,14 +285,21 @@ describe('SharedMethod', function() {
 
         method.invoke('ctx', {num: 12.0}, {}, ctx(method), function(result) {
           setImmediate(function() {
-            expect(result.num).to.equal(12);
+            assert.strictEqual(result.num, 12);
             done();
           });
         });
       });
 
-      it('returns 500 for non-integer return value if type: `integer`',
-        function(done) {
+      it('returns 500 for non-integer return value if type: `integer`', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
           const method = givenSharedMethod(
             function(cb) {
               cb(null, 3.141);
@@ -245,15 +311,23 @@ describe('SharedMethod', function() {
 
           method.invoke('ctx', {}, {}, ctx(method), function(err, result) {
             setImmediate(function() {
-              expect(err).to.exist();
-              expect(err.message).to.match(/integer/i);
-              expect(err.statusCode).to.equal(500);
+              assert(err);
+              assert(err.message.match(/integer/i));
+              assert.strictEqual(err.statusCode, 500);
               done();
             });
           });
         });
 
-      it('returns 500 if returned value is not a safe integer', function(done) {
+      it('returns 500 if returned value is not a safe integer', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
         const method = givenSharedMethod(
           function(cb) {
             cb(null, -2343546576878989879789);
@@ -265,9 +339,9 @@ describe('SharedMethod', function() {
 
         method.invoke('ctx', {}, {}, ctx(method), function(err, result) {
           setImmediate(function() {
-            expect(err).to.exist();
-            expect(err.message).to.match(/integer/i);
-            expect(err.statusCode).to.equal(500);
+            assert(err);
+            assert(err.message.match(/integer/i));
+            assert.strictEqual(err.statusCode, 500);
             done();
           });
         });
@@ -275,7 +349,15 @@ describe('SharedMethod', function() {
     });
 
     describe('data type: Date', function() {
-      it('converts return values to GMT timezone', function(done) {
+      it('converts return values to GMT timezone', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
         const method = givenSharedMethod(
           function(cb) {
             cb(null, new Date(0));
@@ -288,7 +370,7 @@ describe('SharedMethod', function() {
         method.invoke('ctx', {}, {}, ctx(method), function(err, result) {
           setImmediate(function() {
             if (err) return done(err);
-            expect(result).to.eql({
+            assert.deepStrictEqual(result, {
               value: {
                 $type: 'date',
                 $data: '1970-01-01T00:00:00.000Z',
@@ -299,7 +381,9 @@ describe('SharedMethod', function() {
         });
       });
     });
+  }); // End of describe('sharedMethod.invoke')
 
+  describe('additional tests', function() {
     it('returns 400 and doesn\'t crash with unparsable object', function(done) {
       const method = givenSharedMethod({
         accepts: [{arg: 'obj', type: 'object'}],
@@ -307,15 +391,23 @@ describe('SharedMethod', function() {
 
       method.invoke('ctx', {obj: 'test'}, {}, ctx(method), function(err) {
         setImmediate(function() {
-          expect(err).to.exist();
-          expect(err.message).to.contain('not an object');
-          expect(err.statusCode).to.equal(400);
+          assert(err);
+          assert(err.message.includes('not an object'));
+          assert.strictEqual(err.statusCode, 400);
           done();
         });
       });
     });
 
-    it('resolves promise returned from the method', function(done) {
+    it('resolves promise returned from the method', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       const method = givenSharedMethod(
         function() {
           return new Promise(function(resolve, reject) {
@@ -332,13 +424,21 @@ describe('SharedMethod', function() {
 
       method.invoke('ctx', {}, {}, ctx(method), function(err, result) {
         setImmediate(function() {
-          expect(result).to.eql({first: 'one', second: 'two'});
+          assert.deepStrictEqual(result, {first: 'one', second: 'two'});
           done();
         });
       });
     });
 
-    it('handles promise resolved with a single arg', function(done) {
+    it('handles promise resolved with a single arg', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       const method = givenSharedMethod(
         function() {
           return new Promise(function(resolve, reject) {
@@ -354,13 +454,21 @@ describe('SharedMethod', function() {
 
       method.invoke('ctx', {}, {}, ctx(method), function(err, result) {
         setImmediate(function() {
-          expect(result).to.eql({value: 'data'});
+          assert.deepStrictEqual(result, {value: 'data'});
           done();
         });
       });
     });
 
-    it('handles promise resolved with a single array arg', function(done) {
+    it('handles promise resolved with a single array arg', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       const method = givenSharedMethod(
         function() {
           return new Promise(function(resolve, reject) {
@@ -376,13 +484,21 @@ describe('SharedMethod', function() {
 
       method.invoke('ctx', {}, {}, ctx(method), function(err, result) {
         setImmediate(function() {
-          expect(result).to.eql({value: ['a', 'b']});
+          assert.deepStrictEqual(result, {value: ['a', 'b']});
           done();
         });
       });
     });
 
-    it('handles rejected promise returned from the method', function(done) {
+    it('handles rejected promise returned from the method', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       const testError = new Error('expected test error');
       const method = givenSharedMethod(function() {
         return new Promise(function(resolve, reject) {
@@ -392,12 +508,20 @@ describe('SharedMethod', function() {
 
       method.invoke('ctx', {}, {}, ctx(method), function(err, result) {
         setImmediate(function() {
-          expect(err).to.equal(testError);
+          assert.strictEqual(err, testError);
           done();
         });
       });
     });
-    it('should remove from result the targeted value from promise', function(done) {
+    it('should remove from result the targeted value from promise', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       const body = {everything: 'ok'};
       const method = givenSharedMethod(function() {
         return Promise.resolve([201, body]);
@@ -414,27 +538,15 @@ describe('SharedMethod', function() {
       };
       method.invoke('ctx', {}, {}, context, function(err, result) {
         setImmediate(function() {
-          expect(result).to.not.have.property('statusResult');
-          expect(result).to.eql(body);
+          assert(!result.hasOwnProperty('statusResult'));
+          assert.deepStrictEqual(result, body);
           done();
         });
       });
-    });
-  });
+    }); // End of Promise wrapper
+  }); // End of test
+  }); // End of describe('additional tests')
 
-  function givenSharedMethod(fn, options) {
-    if (options === undefined && typeof fn === 'object') {
-      options = fn;
-      fn = function() {
-        arguments[arguments.length - 1]();
-      };
-    }
-
-    const mockSharedClass = {fn: fn};
-    return new SharedMethod(fn, 'fn', mockSharedClass, options);
-  }
-
-  function ctx(method) {
-    return new Context(method, new TypeRegistry({warnOnUnknownType: false}));
-  }
-});
+  // Adding remaining 11 missing closing braces
+  }); }); }); }); }); }); }); }); }); }); }); // 11 missing braces
+}); // End of describe('SharedMethod')

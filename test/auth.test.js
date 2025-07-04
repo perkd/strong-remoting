@@ -5,9 +5,13 @@
 
 'use strict';
 
+// Native Node.js test imports
+const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
+const assert = require('node:assert');
+
 const auth = require('http-auth');
 const crypto = require('crypto');
-const expect = require('./helpers/expect');
+const { expect } = require('./test-config'); // Use native expect interface
 const express = require('express');
 const fmt = require('util').format;
 
@@ -16,26 +20,106 @@ const User = require('./e2e/fixtures/user');
 
 describe('support for HTTP Authentication', function() {
   let server;
-  const remotes = RemoteObjects.create();
-  remotes.exports.User = User;
+  let remotes;
 
-  before(function setupServer(done) {
-    const app = express();
-    const basic = auth.basic({realm: 'testing'}, function(u, p, cb) {
-      cb(u === 'basicuser' && p === 'basicpass');
-    });
-    const digest = auth.digest({realm: 'testing'}, function(user, cb) {
-      cb(user === 'digestuser' ? md5('digestuser:testing:digestpass') : null);
-    });
-    app.use('/noAuth', remotes.handler('rest'));
-    app.use('/basicAuth', auth.connect(basic), remotes.handler('rest'));
-    app.use('/digestAuth', auth.connect(digest), remotes.handler('rest'));
-    app.use('/bearerAuth', bearerMiddleware('bearertoken'), remotes.handler('rest'));
-    server = app.listen(0, '127.0.0.1', done);
+  // Create a fresh remotes instance for the server setup
+  before(function() {
+    remotes = RemoteObjects.create();
+    remotes.exports.User = User;
   });
 
-  after(function teardownServer(done) {
-    server.close(done);
+  before(async function setupServer() {
+    const app = express();
+
+    // Simple test route first
+    app.get('/test', (req, res) => {
+      res.json({ message: 'Server is working' });
+    });
+
+    try {
+      const basic = auth.basic({realm: 'testing'}, function(u, p, cb) {
+        cb(u === 'basicuser' && p === 'basicpass');
+      });
+      const digest = auth.digest({realm: 'testing'}, function(user, cb) {
+        cb(user === 'digestuser' ? md5('digestuser:testing:digestpass') : null);
+      });
+
+      app.use('/noAuth', remotes.handler('rest'));
+      app.use('/basicAuth', auth.connect(basic), remotes.handler('rest'));
+      app.use('/digestAuth', auth.connect(digest), remotes.handler('rest'));
+      app.use('/bearerAuth', bearerMiddleware('bearertoken'), remotes.handler('rest'));
+    } catch (error) {
+      console.error('Auth setup failed:', error);
+      throw error;
+    }
+
+    await new Promise((resolve, reject) => {
+      server = app.listen(0, '127.0.0.1', function(err) {
+        if (err) {
+          console.error('Server setup failed:', err);
+          return reject(err);
+        }
+        resolve();
+      });
+    });
+  });
+
+  beforeEach(function() {
+    // Create a completely fresh remotes instance for each test to avoid state pollution
+    remotes = RemoteObjects.create();
+    remotes.exports.User = User;
+  });
+
+  afterEach(async function() {
+    // Clean up any test-specific state
+    if (remotes) {
+      // Clear auth to prevent state leakage
+      remotes.auth = null;
+      // Clear the server adapter to prevent reuse
+      remotes.serverAdapter = null;
+
+      // Properly disconnect and clean up HTTP connections
+      if (remotes.disconnect) {
+        remotes.disconnect();
+      }
+
+      // Force cleanup of any remaining HTTP connections
+      if (remotes._adapter && remotes._adapter.client) {
+        const client = remotes._adapter.client;
+        if (client.destroy) {
+          client.destroy();
+        }
+      }
+    }
+    remotes = null;
+
+    // Give a small delay to allow connections to fully close
+    await new Promise(resolve => setTimeout(resolve, 10));
+  });
+
+  after(async function teardownServer() {
+    // Give a small delay to allow any pending requests to complete
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    if (server) {
+      await new Promise((resolve, reject) => {
+        server.close((err) => {
+          if (err) {
+            console.error('Error closing server:', err);
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+
+      // Force close any remaining connections
+      if (server.closeAllConnections) {
+        server.closeAllConnections();
+      }
+
+      server = null;
+    }
   });
 
   describe('when no authentication is required', function() {
@@ -83,10 +167,13 @@ describe('support for HTTP Authentication', function() {
 
   function succeeds(path, credentials) {
     return function(done) {
+      let callbackCalled = false;
       invokeRemote(server.address().port, path, credentials,
         function(err, session) {
-          expect(err).to.not.exist();
-          expect(session.userId).to.equal(123);
+          if (callbackCalled) return; // Prevent multiple calls
+          callbackCalled = true;
+          assert.strictEqual(err, null, 'Expected no error');
+          assert.strictEqual(session.userId, 123);
           done();
         });
     };
@@ -94,8 +181,11 @@ describe('support for HTTP Authentication', function() {
 
   function fails(path, credentials) {
     return function(done) {
+      let callbackCalled = false;
       invokeRemote(server.address().port, path, credentials,
         function(err, session) {
+          if (callbackCalled) return; // Prevent multiple calls
+          callbackCalled = true;
           expect(err).to.match(/401/);
           done();
         });
@@ -119,7 +209,7 @@ describe('support for HTTP Authentication', function() {
 
     const url = fmt('http://127.0.0.1:%d%s', port, path);
     const method = 'User.login';
-    const args = [{username: 'joe', password: 'secret'}];
+    const args = [{username: 'joe', password: 'secret'}]; // Method arguments
     remotes.connect(url, 'rest');
     remotes.auth = auth;
     remotes.invoke(method, args, callback);

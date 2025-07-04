@@ -5,7 +5,8 @@
 
 'use strict';
 
-const extend = require('util')._extend;
+// Use Object.assign() instead of deprecated util._extend
+const extend = Object.assign;
 
 function CustomClass(data) {
   if (!(this instanceof CustomClass))

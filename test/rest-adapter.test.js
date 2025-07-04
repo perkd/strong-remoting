@@ -5,15 +5,19 @@
 
 'use strict';
 
-const assert = require('assert');
+// Native Node.js test imports
+const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
+const assert = require('node:assert');
+const { expect } = require('./test-config'); // Use native expect interface
 const HttpInvocation = require('../lib/http-invocation');
-const extend = require('util')._extend;
+// Use Object.assign() instead of deprecated util._extend
+const extend = Object.assign;
 const inherits = require('util').inherits;
 const RemoteObjects = require('../');
 const RestAdapter = require('../lib/rest-adapter');
 const SharedClass = require('../lib/shared-class');
 const SharedMethod = require('../lib/shared-method');
-const expect = require('chai').expect;
+// Use native assert directly
 const factory = require('./helpers/shared-objects-factory.js');
 function NOOP() {}
 
@@ -145,22 +149,22 @@ describe('RestAdapter', function() {
 
     it('has `description`', function() {
       const method = givenRestStaticMethod({description: 'a-desc'});
-      expect(method.description).to.equal('a-desc');
+      assert.strictEqual(method.description, 'a-desc');
     });
 
     it('has `notes`', function() {
       const method = givenRestStaticMethod({notes: 'some-notes'});
-      expect(method.notes).to.equal('some-notes');
+      assert.strictEqual(method.notes, 'some-notes');
     });
 
     it('has `documented`', function() {
       const method = givenRestStaticMethod({documented: false});
-      expect(method.documented).to.equal(false);
+      assert.strictEqual(method.documented, false);
     });
 
     it('has `documented:true` by default', function() {
       const method = givenRestStaticMethod();
-      expect(method.documented).to.equal(true);
+      assert.strictEqual(method.documented, true);
     });
 
     describe('isReturningArray()', function() {
@@ -424,7 +428,15 @@ describe('RestAdapter', function() {
       HttpInvocation.prototype.invoke = oldInvoke;
     });
 
-    it('should call remote hooks', function(done) {
+    it('should call remote hooks', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       let beforeCalled = false;
       let afterCalled = false;
       const name = 'testClass.testMethod';
@@ -446,9 +458,18 @@ describe('RestAdapter', function() {
         assert(afterCalled);
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
-    it('should call beforeRemote hook with request object', function(done) {
+    it('should call beforeRemote hook with request object', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       const name = 'testClass.testMethod';
       let _req;
 
@@ -460,12 +481,21 @@ describe('RestAdapter', function() {
       const restAdapter = givenRestStaticMethod({isStatic: true});
       restAdapter.connect('foo');
       restAdapter.invoke(name, [], [], function() {
-        expect(_req).to.equal(req);
+        assert.strictEqual(_req, req);
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
-    it('should call afterRemote hook with response object', function(done) {
+    it('should call afterRemote hook with response object', function(t) {
+      return new Promise((resolve, reject) => {
+        const done = (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        };
       const name = 'testClass.testMethod';
       let _res;
 
@@ -477,10 +507,11 @@ describe('RestAdapter', function() {
       const restAdapter = givenRestStaticMethod({isStatic: true});
       restAdapter.connect('foo');
       restAdapter.invoke(name, [], [], function() {
-        expect(_res).to.equal(res);
+        assert.strictEqual(_res, res);
         done();
       });
-    });
+      }); // End of Promise
+    }); // End of it
 
     function givenRestStaticMethod(methodConfig, classConfig) {
       const name = 'testMethod';

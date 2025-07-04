@@ -225,3 +225,30 @@ Then you can invoke `fs.createReadStream()` using curl as follows:
 ```sh
 $ curl http://localhost:3000/fs/createReadStream?path=some-file.txt
 ```
+
+## Testing
+
+Strong-remoting uses native Node.js testing with comprehensive coverage reporting.
+
+### Running Tests
+
+```sh
+# Run all tests with coverage
+yarn test
+
+# Run tests in watch mode
+yarn test:watch
+
+# Generate coverage reports
+yarn coverage
+yarn coverage:html  # Opens HTML coverage report in browser
+```
+
+### Test Structure
+
+- **Unit Tests**: Located in `test/**/*.test.js`
+- **Integration Tests**: HTTP adapter, authentication, and streaming tests
+- **Coercion Tests**: Comprehensive REST parameter coercion testing in `test/rest-coercion/`
+- **E2E Tests**: End-to-end smoke tests in `test/e2e/`
+
+All tests use native Node.js test runner with c8 for coverage reporting.
