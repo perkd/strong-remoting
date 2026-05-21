@@ -2015,7 +2015,7 @@ describe('strong-remoting-rest', function() {
                   assert.strictEqual(res.text,
                     '<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n' +
                     '<response>\n  ' +
-                    '<a>fooÁáĂΩasd><=$~!@#$%^&*()-_=+/.,;\'"[]{}?</a>\n' +
+                    '<a>fooÁáĂΩasd>&lt;=$~!@#$%^&amp;*()-_=+/.,;\'"[]{}?</a>\n' +
                     '</response>');
                   resolve();
                 } catch (assertErr) {

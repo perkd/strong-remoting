@@ -115,27 +115,56 @@ class TestRequest {
     return this;
   }
 
-  expect(statusOrHeader, value) {
+  expect(statusOrHeader, value, callback) {
+    // Supertest signatures:
+    //   .expect(status)
+    //   .expect(status, callback)
+    //   .expect(status, body)
+    //   .expect(status, body, callback)
+    //   .expect(body)                      (string | object | RegExp)
+    //   .expect(body, callback)
+    //   .expect(headerName, headerValue)
+    //   .expect(headerName, headerValue, callback)
+    //   .expect(callback)                  (custom assertion fn)
     if (typeof statusOrHeader === 'number') {
       this.expectations.push({ type: 'status', value: statusOrHeader });
-    } else if (typeof statusOrHeader === 'string' && value !== undefined) {
+      if (value !== undefined && typeof value !== 'function') {
+        // .expect(status, body[, callback])
+        this._pushBodyExpectation(value);
+      }
+      const cb = typeof value === 'function' ? value : callback;
+      if (typeof cb === 'function') return this.end(cb);
+    } else if (typeof statusOrHeader === 'string' && value !== undefined && typeof value !== 'function') {
+      // .expect(headerName, headerValue[, callback])
       this.expectations.push({ type: 'header', header: statusOrHeader, value });
+      if (typeof callback === 'function') return this.end(callback);
     } else if (typeof statusOrHeader === 'string') {
+      // .expect(bodyString[, callback])
       this.expectations.push({ type: 'body', value: statusOrHeader });
+      if (typeof value === 'function') return this.end(value);
     } else if (statusOrHeader instanceof RegExp) {
       this.expectations.push({ type: 'bodyRegex', value: statusOrHeader });
+      if (typeof value === 'function') return this.end(value);
     } else if (typeof statusOrHeader === 'object' && statusOrHeader !== null) {
-      // Support for .expect(object, callback) pattern from supertest
+      // .expect(bodyObject[, callback])
       this.expectations.push({ type: 'bodyObject', value: statusOrHeader });
-      if (typeof value === 'function') {
-        // If callback is provided, execute immediately
-        return this.end(value);
-      }
+      if (typeof value === 'function') return this.end(value);
     } else if (typeof statusOrHeader === 'function') {
-      // Support for .expect(callback) pattern
+      // .expect(callback) — supertest uses this for custom assertion fns,
+      // but in this codebase it's used as a terminator with (err, res)
       return this.end(statusOrHeader);
     }
     return this;
+  }
+
+  _pushBodyExpectation(value) {
+    if (typeof value === 'string') {
+      this.expectations.push({ type: 'body', value });
+    } else if (value instanceof RegExp) {
+      this.expectations.push({ type: 'bodyRegex', value });
+    } else if (typeof value === 'object' && value !== null) {
+      this.expectations.push({ type: 'bodyObject', value });
+    }
   }
 
   async end(callback) {
@@ -235,7 +264,10 @@ class TestRequest {
             headers: res.headers,
             text: body,
             body: parsedBody,
-            res: res
+            res: res,
+            get(name) {
+              return res.headers[name.toLowerCase()];
+            },
           };
 
           resolve(response);
@@ -245,7 +277,11 @@ class TestRequest {
       req.on('error', reject);
 
       if (this.body) {
-        req.write(this.body);
+        const buf = Buffer.isBuffer(this.body) ? this.body : Buffer.from(this.body);
+        if (!options.headers['Content-Length']) {
+          req.setHeader('Content-Length', buf.length);
+        }
+        req.write(buf);
       }
 
       req.end();

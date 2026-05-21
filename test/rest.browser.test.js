@@ -12,7 +12,6 @@ const assert = require('node:assert');
 const extend = Object.assign;
 const RemoteObjects = require('../');
 const express = require('express');
-const { expect } = require('./test-config'); // Use native expect interface
 const factory = require('./helpers/shared-objects-factory.js');
 
 describe('strong-remoting-rest', function() {
@@ -223,7 +222,7 @@ describe('strong-remoting-rest', function() {
         };
 
         objects.invoke(method.name, [obj], function(err, data) {
-          expect(obj).to.deep.equal(data);
+          assert.deepStrictEqual(obj, data);
           done();
         });
       }); // End of Promise
@@ -253,7 +252,7 @@ describe('strong-remoting-rest', function() {
 
         const data = {date: {$type: 'date', $data: new Date()}};
         objects.invoke(method.name, [data], function(err, resData) {
-          expect(resData).to.deep.equal({date: data.date.$data.toISOString()});
+          assert.deepStrictEqual(resData, {date: data.date.$data.toISOString()});
           done();
         });
       }); // End of Promise
@@ -414,12 +413,12 @@ describe('strong-remoting-rest', function() {
           try {
             objects.invoke(method.name, [''], function(err, a, b, c) {
               // If we get here, the error should be in the err parameter
-              expect(err).to.be.an.instanceOf(Error);
+              assert(err instanceof Error);
               done();
             });
           } catch (syncError) {
             // If validation fails synchronously, catch it here
-            expect(syncError).to.be.an.instanceOf(Error);
+            assert(syncError instanceof Error);
             done();
           }
         }); // End of Promise
@@ -456,12 +455,12 @@ describe('strong-remoting-rest', function() {
         try {
           objects.invoke(method.name, ['', false, 0], function(err, a, b, c) {
             // If we get here, the error should be in the err parameter
-            expect(err).to.be.an.instanceOf(Error);
+            assert(err instanceof Error);
             done();
           });
         } catch (syncError) {
           // If validation fails synchronously, catch it here
-          expect(syncError).to.be.an.instanceOf(Error);
+          assert(syncError instanceof Error);
           done();
         }
       }); // End of Promise
@@ -499,7 +498,7 @@ describe('strong-remoting-rest', function() {
 
           objects.invoke(method.name, [], (err, result) => {
             if (err) return done(err);
-            expect(result).to.eql({count: 1});
+            assert.deepStrictEqual(result, {count: 1});
             done();
           });
         });
@@ -581,7 +580,7 @@ describe('strong-remoting-rest', function() {
     return function(err, resp) {
       if (err) return done(err);
       for (const prop in keyValues) {
-        expect(resp.body.error).to.have.property(prop, keyValues[prop]);
+        assert.strictEqual(resp.body.error[prop], keyValues[prop]);
       }
       done();
     };

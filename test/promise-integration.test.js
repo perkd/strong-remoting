@@ -9,7 +9,6 @@
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
 
-const { expect } = require('./test-config'); // Use native expect interface
 const RemoteObjects = require('../');
 const SharedClass = require('../lib/shared-class');
 const ContextBase = require('../lib/context-base');
@@ -73,7 +72,7 @@ describe('Promise Integration', function() {
 
       try {
         await remotes.invoke('test', [], []);
-        expect.fail('Should have thrown an error');
+        assert.fail('Should have thrown an error');
       } catch (err) {
         assert(err instanceof Error);
         assert.strictEqual(err.message, 'Test error');

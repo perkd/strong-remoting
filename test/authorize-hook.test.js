@@ -9,7 +9,6 @@
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
 
-const { expect } = require('./test-config'); // Use native expect interface
 const express = require('express');
 const RemoteObjects = require('../');
 const User = require('./e2e/fixtures/user');
@@ -98,10 +97,10 @@ describe('authorization hook', function() {
       invokeRemote(server.address().port,
         function(err, session) {
           try {
-            expect(err).to.not.exist;
+            assert.strictEqual(err, null);
             assert.strictEqual(session.userId, 123);
             //                        vvvvvvvv - local before hook
-            expect(callStack).to.eql(['before', 'authorization', 'before']);
+            assert.deepStrictEqual(callStack, ['before', 'authorization', 'before']);
             done();
           } catch (assertionError) {
             done(assertionError);

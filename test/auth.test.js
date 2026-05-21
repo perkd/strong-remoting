@@ -11,7 +11,6 @@ const assert = require('node:assert');
 
 const auth = require('http-auth');
 const crypto = require('crypto');
-const { expect } = require('./test-config'); // Use native expect interface
 const express = require('express');
 const fmt = require('util').format;
 
@@ -160,8 +159,8 @@ describe('support for HTTP Authentication', function() {
     it('should be populated from the url', function() {
       const url = 'http://login:pass@myhost.com';
       remotes.connect(url, 'rest');
-      expect(remotes.auth.username).to.eql('login');
-      expect(remotes.auth.password).to.eql('pass');
+      assert.deepStrictEqual(remotes.auth.username, 'login');
+      assert.deepStrictEqual(remotes.auth.password, 'pass');
     });
   });
 
@@ -186,7 +185,7 @@ describe('support for HTTP Authentication', function() {
         function(err, session) {
           if (callbackCalled) return; // Prevent multiple calls
           callbackCalled = true;
-          expect(err).to.match(/401/);
+          assert.match(String(err), /401/);
           done();
         });
     };

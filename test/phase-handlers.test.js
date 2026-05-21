@@ -9,7 +9,6 @@
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
 
-const { expect } = require('./test-config'); // Use native expect interface
 const express = require('express');
 const RemoteObjects = require('../');
 const User = require('./e2e/fixtures/user');
@@ -77,7 +76,7 @@ describe('phase handlers', function() {
   });
 
   it('has built-in phases "auth" and "invoke"', function() {
-    expect(remotes.phases.getPhaseNames()).to.eql(['auth', 'invoke']);
+    assert.deepStrictEqual(remotes.phases.getPhaseNames(), ['auth', 'invoke']);
   });
 
   it('invokes phases in the correct order', function(t) {
@@ -109,7 +108,7 @@ describe('phase handlers', function() {
 
     invokeRemote('User.pushName', function(err) {
       if (err) return done(err);
-      expect(phasesRun).to.eql([
+      assert.deepStrictEqual(phasesRun, [
         'hook-authorization',
         'phaseHandler-auth',
         'hook-remotes.before',
@@ -173,7 +172,7 @@ describe('phase handlers', function() {
         };
       invokeRemote('User.static', function(err) {
         if (err) return done(err);
-        expect(handlersRun).to.eql([
+        assert.deepStrictEqual(handlersRun, [
           '**',
           'User.**',
           'User.*',
@@ -195,7 +194,7 @@ describe('phase handlers', function() {
         };
       invokeRemote('User.prototype.proto', function(err) {
         if (err) return done(err);
-        expect(handlersRun).to.eql([
+        assert.deepStrictEqual(handlersRun, [
           '**',
           'User.**',
           'User.prototype.*',

@@ -6,7 +6,6 @@
 'use strict';
 
 const debug = require('debug')('test');
-const { expect } = require('../test-config'); // Use native expect interface
 const util = require('util');
 const format = util.format;
 // Use Object.assign() instead of deprecated util._extend

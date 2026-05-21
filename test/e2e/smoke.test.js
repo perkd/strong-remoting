@@ -10,7 +10,6 @@ const { describe, it, before, after } = require('node:test');
 const assert = require('node:assert');
 
 const RemoteObjects = require('../../');
-const { expect } = require('../test-config'); // Use native expect interface
 const testServer = require('../helpers/test-server');
 const REMOTE_URL = 'http://localhost:3000';
 const remotes = require('./fixtures/remotes');

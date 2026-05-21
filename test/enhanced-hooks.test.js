@@ -9,7 +9,6 @@
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
 
-const { expect } = require('./test-config'); // Use native expect interface
 const RemoteObjects = require('../');
 
 describe('Enhanced Hook System', function() {
@@ -46,7 +45,7 @@ describe('Enhanced Hook System', function() {
       const ctx = {};
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
-        expect(err).to.be.undefined;
+        assert.strictEqual(err, undefined);
         assert.strictEqual(hookExecuted, true);
         assert.strictEqual(ctx.hookData, 'callback-before');
         done();
@@ -79,7 +78,7 @@ describe('Enhanced Hook System', function() {
       const ctx = { result: 'original' };
       
       remotes.execHooks('after', method, {}, ctx, function(err) {
-        expect(err).to.be.undefined;
+        assert.strictEqual(err, undefined);
         assert.strictEqual(hookExecuted, true);
         assert.strictEqual(ctx.result, 'original modified');
         done();
@@ -108,7 +107,7 @@ describe('Enhanced Hook System', function() {
       const ctx = {};
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
-        expect(err).to.be.an('error');
+        assert(err instanceof Error);
         assert.strictEqual(err.message, 'Hook error');
         done();
       });
@@ -142,7 +141,7 @@ describe('Enhanced Hook System', function() {
       const ctx = {};
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
-        expect(err).to.be.undefined;
+        assert.strictEqual(err, undefined);
         assert.strictEqual(hookExecuted, true);
         assert.strictEqual(ctx.hookData, 'async-before');
         done();
@@ -179,7 +178,7 @@ describe('Enhanced Hook System', function() {
       const ctx = {};
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
-        expect(err).to.be.undefined;
+        assert.strictEqual(err, undefined);
         assert.strictEqual(hookExecuted, true);
         assert.strictEqual(ctx.hookData, 'promise-before');
         done();
@@ -209,7 +208,7 @@ describe('Enhanced Hook System', function() {
       const ctx = {};
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
-        expect(err).to.be.an('error');
+        assert(err instanceof Error);
         assert.strictEqual(err.message, 'Async hook error');
         done();
       });
@@ -237,7 +236,7 @@ describe('Enhanced Hook System', function() {
       const ctx = {};
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
-        expect(err).to.be.an('error');
+        assert(err instanceof Error);
         assert.strictEqual(err.message, 'Promise rejection');
         done();
       });
@@ -270,7 +269,7 @@ describe('Enhanced Hook System', function() {
       const ctx = {};
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
-        expect(err).to.be.undefined;
+        assert.strictEqual(err, undefined);
         assert.strictEqual(hookExecuted, true);
         assert.strictEqual(ctx.hookData, 'sync-before');
         done();
@@ -299,7 +298,7 @@ describe('Enhanced Hook System', function() {
       const ctx = {};
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
-        expect(err).to.be.an('error');
+        assert(err instanceof Error);
         assert.strictEqual(err.message, 'Sync hook error');
         done();
       });
@@ -360,8 +359,8 @@ describe('Enhanced Hook System', function() {
       const ctx = {};
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
-        expect(err).to.be.undefined;
-        expect(executionOrder).to.deep.equal(['callback', 'async', 'sync', 'promise']);
+        assert.strictEqual(err, undefined);
+        assert.deepStrictEqual(executionOrder, ['callback', 'async', 'sync', 'promise']);
         assert.strictEqual(ctx.data, 'callback-async-sync-promise');
         done();
       });
@@ -402,9 +401,9 @@ describe('Enhanced Hook System', function() {
       const ctx = {};
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
-        expect(err).to.be.an('error');
+        assert(err instanceof Error);
         assert.strictEqual(err.message, 'Second hook error');
-        expect(executionOrder).to.deep.equal(['first', 'second']);
+        assert.deepStrictEqual(executionOrder, ['first', 'second']);
         done();
       });
       }); // End of Promise
@@ -436,7 +435,7 @@ describe('Enhanced Hook System', function() {
       const ctx = {};
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
-        expect(err).to.be.undefined;
+        assert.strictEqual(err, undefined);
         assert.strictEqual(hookExecuted, true);
         assert.strictEqual(ctx.wildcardHook, true);
         done();
@@ -468,7 +467,7 @@ describe('Enhanced Hook System', function() {
       const ctx = {};
       
       remotes.execHooks('before', method, {}, ctx, function(err) {
-        expect(err).to.be.undefined;
+        assert.strictEqual(err, undefined);
         assert.strictEqual(hookExecuted, true);
         assert.strictEqual(ctx.globalHook, true);
         done();

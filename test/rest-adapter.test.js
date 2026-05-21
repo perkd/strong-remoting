@@ -8,7 +8,6 @@
 // Native Node.js test imports
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
-const { expect } = require('./test-config'); // Use native expect interface
 const HttpInvocation = require('../lib/http-invocation');
 // Use Object.assign() instead of deprecated util._extend
 const extend = Object.assign;
@@ -32,7 +31,7 @@ describe('RestAdapter', function() {
     it('fills `name`', function() {
       remotes.exports.testClass = factory.createSharedClass();
       const classes = getRestClasses();
-      expect(classes[0]).to.have.property('name', 'testClass');
+      assert.strictEqual(classes[0].name, 'testClass');
     });
 
     it('fills `routes`', function() {
@@ -41,15 +40,15 @@ describe('RestAdapter', function() {
 
       const classes = getRestClasses();
 
-      expect(classes[0]).to.have.property('routes')
-        .eql([{path: '/test-class', verb: 'any'}]);
+      assert('routes' in classes[0]);
+      assert.deepStrictEqual(classes[0].routes, [{path: '/test-class', verb: 'any'}]);
     });
 
     it('fills `sharedClass`', function() {
       remotes.exports.testClass = factory.createSharedClass();
       const classes = getRestClasses();
-      expect(classes[0]).to.have.property('sharedClass');
-      expect(classes[0].sharedClass).to.be.an.instanceOf(SharedClass);
+      assert('sharedClass' in classes[0]);
+      assert(classes[0].sharedClass instanceof SharedClass);
     });
 
     it('fills `ctor`', function() {
@@ -58,8 +57,8 @@ describe('RestAdapter', function() {
 
       const classes = getRestClasses();
 
-      expect(classes[0].ctor).to.have.property('routes')
-        .eql([{path: '/shared-ctor', verb: 'all'}]);
+      assert('routes' in classes[0].ctor);
+      assert.deepStrictEqual(classes[0].ctor.routes, [{path: '/shared-ctor', verb: 'all'}]);
     });
 
     it('fills static methods', function() {
@@ -68,11 +67,10 @@ describe('RestAdapter', function() {
 
       const methods = getRestClasses()[0].methods;
 
-      expect(methods).to.have.length(1);
-      expect(methods[0]).to.have.property('name', 'staticMethod');
-      expect(methods[0]).to.have.property('fullName', 'testClass.staticMethod');
-      expect(methods[0])
-        .to.have.nested.property('routes[0].path', '/staticMethod');
+      assert.strictEqual(methods.length, 1);
+      assert.strictEqual(methods[0].name, 'staticMethod');
+      assert.strictEqual(methods[0].fullName, 'testClass.staticMethod');
+      assert.strictEqual(methods[0].routes[0].path, '/staticMethod');
     });
 
     it('fills prototype methods', function() {
@@ -81,12 +79,10 @@ describe('RestAdapter', function() {
 
       const methods = getRestClasses()[0].methods;
 
-      expect(methods).to.have.length(1);
-      expect(methods[0])
-        .to.have.property('fullName', 'testClass.prototype.instanceMethod');
-      expect(methods[0])
-        // Note: the `/id:` part is coming from testClass.sharedCtor
-        .to.have.nested.property('routes[0].path', '/:id/instanceMethod');
+      assert.strictEqual(methods.length, 1);
+      assert.strictEqual(methods[0].fullName, 'testClass.prototype.instanceMethod');
+      // Note: the `/id:` part is coming from testClass.sharedCtor
+      assert.strictEqual(methods[0].routes[0].path, '/:id/instanceMethod');
     });
 
     function getRestClasses() {
@@ -101,8 +97,8 @@ describe('RestAdapter', function() {
 
       const classes = getRestClasses();
 
-      expect(classes[0]).to.have.property('routes')
-        .eql([{path: '/test-class', verb: 'any'}]);
+      assert('routes' in classes[0]);
+      assert.deepStrictEqual(classes[0].routes, [{path: '/test-class', verb: 'any'}]);
     });
 
     function getRestClasses() {
@@ -117,7 +113,7 @@ describe('RestAdapter', function() {
           {path: '/a-path'},
           {path: '/another-path'},
         ]});
-        expect(restClass.getPath()).to.equal('/a-path');
+        assert.strictEqual(restClass.getPath(), '/a-path');
       });
     });
 
@@ -134,17 +130,17 @@ describe('RestAdapter', function() {
 
     it('has `accepts`', function() {
       const method = givenRestStaticMethod({accepts: anArg});
-      expect(method.accepts).to.eql([anArg]);
+      assert.deepStrictEqual(method.accepts, [anArg]);
     });
 
     it('has `returns`', function() {
       const method = givenRestStaticMethod({returns: anArg});
-      expect(method.returns).to.eql([anArg]);
+      assert.deepStrictEqual(method.returns, [anArg]);
     });
 
     it('has `errors`', function() {
       const method = givenRestStaticMethod({errors: anArg});
-      expect(method.errors).to.eql([anArg]);
+      assert.deepStrictEqual(method.errors, [anArg]);
     });
 
     it('has `description`', function() {
@@ -172,35 +168,35 @@ describe('RestAdapter', function() {
         const method = givenRestStaticMethod({
           returns: {root: true, type: Array},
         });
-        expect(method.isReturningArray()).to.equal(true);
+        assert.strictEqual(method.isReturningArray(), true);
       });
 
       it('returns true when there is single root "array" arg', function() {
         const method = givenRestStaticMethod({
           returns: {root: true, type: Array},
         });
-        expect(method.isReturningArray()).to.equal(true);
+        assert.strictEqual(method.isReturningArray(), true);
       });
 
       it('returns true when there is single root [Model] arg', function() {
         const method = givenRestStaticMethod({
           returns: {root: true, type: ['string']},
         });
-        expect(method.isReturningArray()).to.equal(true);
+        assert.strictEqual(method.isReturningArray(), true);
       });
 
       it('returns false otherwise', function() {
         const method = givenRestStaticMethod({
           returns: {arg: 'result', type: Array},
         });
-        expect(method.isReturningArray()).to.equal(false);
+        assert.strictEqual(method.isReturningArray(), false);
       });
 
       it('handles invalid type', function() {
         const method = givenRestStaticMethod({
           returns: {root: true},
         });
-        expect(method.isReturningArray()).to.equal(false);
+        assert.strictEqual(method.isReturningArray(), false);
       });
     });
 
@@ -212,20 +208,26 @@ describe('RestAdapter', function() {
 
       it('should find the first arg', function() {
         const method = givenRestStaticMethod({accepts: acceptsTwoArgs});
-        expect(method.getArgByName('argName1', ['firstArg', 'secondArg']))
-          .to.equal('firstArg');
+        assert.strictEqual(
+          method.getArgByName('argName1', ['firstArg', 'secondArg']),
+          'firstArg',
+        );
       });
 
       it('should not find the second arg', function() {
         const method = givenRestStaticMethod({accepts: acceptsTwoArgs});
-        expect(method.getArgByName('argName2', ['firstArg', 'secondArg']))
-          .to.equal('secondArg');
+        assert.strictEqual(
+          method.getArgByName('argName2', ['firstArg', 'secondArg']),
+          'secondArg',
+        );
       });
 
       it('should not find argument not defined in metadata', function() {
         const method = givenRestStaticMethod({accepts: acceptsTwoArgs});
-        expect(method.getArgByName('unknown-arg', ['firstArg', 'secondArg']))
-          .to.equal(undefined);
+        assert.strictEqual(
+          method.getArgByName('unknown-arg', ['firstArg', 'secondArg']),
+          undefined,
+        );
       });
     });
 
@@ -238,14 +240,14 @@ describe('RestAdapter', function() {
             http: {source: 'body'},
           },
         });
-        expect(method.acceptsSingleBodyArgument()).to.equal(true);
+        assert.strictEqual(method.acceptsSingleBodyArgument(), true);
       });
 
       it('returns false otherwise', function() {
         const method = givenRestStaticMethod({
           accepts: {arg: 'data', type: Object},
         });
-        expect(method.acceptsSingleBodyArgument()).to.equal(false);
+        assert.strictEqual(method.acceptsSingleBodyArgument(), false);
       });
     });
 
@@ -254,17 +256,17 @@ describe('RestAdapter', function() {
 
       it('returns POST for `all`', function() {
         const method = givenRestStaticMethod({http: {verb: 'all'}});
-        expect(method.getHttpMethod()).to.equal('POST');
+        assert.strictEqual(method.getHttpMethod(), 'POST');
       });
 
       it('returns DELETE for `del`', function() {
         const method = givenRestStaticMethod({http: {verb: 'del'}});
-        expect(method.getHttpMethod()).to.equal('DELETE');
+        assert.strictEqual(method.getHttpMethod(), 'DELETE');
       });
 
       it('returns upper-case value otherwise', function() {
         const method = givenRestStaticMethod({http: {verb: 'get'}});
-        expect(method.getHttpMethod()).to.equal('GET');
+        assert.strictEqual(method.getHttpMethod(), 'GET');
       });
     });
 
@@ -274,7 +276,7 @@ describe('RestAdapter', function() {
           {path: '/a-path'},
           {path: '/another-path'},
         ]});
-        expect(method.getPath()).to.equal('/a-path');
+        assert.strictEqual(method.getPath(), '/a-path');
       });
     });
 
@@ -287,7 +289,7 @@ describe('RestAdapter', function() {
           {http: {path: '/a-class'}},
         );
 
-        expect(method.getFullPath()).to.equal('/a-class/a-method');
+        assert.strictEqual(method.getFullPath(), '/a-class/a-method');
       });
     });
 
@@ -308,12 +310,12 @@ describe('RestAdapter', function() {
           },
         ];
 
-        expect(method.getEndpoints()).to.eql(expectedEndpoints);
+        assert.deepStrictEqual(method.getEndpoints(), expectedEndpoints);
       });
 
       it('should return verb and fullPath for single path', function() {
         const method = givenRestStaticMethod({http: {verb: 'all'}});
-        expect(method.getEndpoints()).to.eql([
+        assert.deepStrictEqual(method.getEndpoints(), [
           {
             verb: 'POST',
             fullPath: '/testClass/testMethod',
@@ -349,7 +351,7 @@ describe('RestAdapter', function() {
 
       routes.sort(RestAdapter.sortRoutes);
 
-      expect(routes).to.eql([
+      assert.deepStrictEqual(routes, [
         {route: {verb: 'get', path: '/findOne'}},
         {route: {verb: 'get', path: '/:id'}},
         {route: {verb: 'get', path: '/'}},
@@ -368,7 +370,7 @@ describe('RestAdapter', function() {
 
       routes.sort(RestAdapter.sortRoutes);
 
-      expect(routes).to.eql([
+      assert.deepStrictEqual(routes, [
         {route: {verb: 'get', path: '/findOne'}},
         {route: {verb: 'get', path: '/:id/docs'}},
         {route: {verb: 'get', path: '/:id'}},
@@ -384,7 +386,7 @@ describe('RestAdapter', function() {
 
       routes.sort(RestAdapter.sortRoutes);
 
-      expect(routes).to.eql([
+      assert.deepStrictEqual(routes, [
         {route: {verb: 'get', path: '/sum/1'}},
         {route: {verb: 'get', path: '/sum'}},
       ]);
@@ -398,7 +400,7 @@ describe('RestAdapter', function() {
 
       routes.sort(RestAdapter.sortRoutes);
 
-      expect(routes).to.eql([
+      assert.deepStrictEqual(routes, [
         {route: {verb: 'get', path: '/sum/1'}},
         {route: {verb: 'get', path: '/sum/'}},
       ]);
@@ -543,13 +545,13 @@ describe('RestAdapter', function() {
       const accessToken = {id: 'def'};
       const options = {accessToken: accessToken};
       const auth = restAdapter._getInvocationAuth(options);
-      expect(auth).to.deep.equal(options);
+      assert.deepStrictEqual(auth, options);
     });
 
     it('should find the auth from the remote', () => {
       remotes.auth = {bearer: 'zzz'};
       const auth = restAdapter._getInvocationAuth(undefined);
-      expect(auth).to.deep.equal(remotes.auth);
+      assert.deepStrictEqual(auth, remotes.auth);
     });
 
     it('should prefer global auth over invocation options', () => {
@@ -557,7 +559,7 @@ describe('RestAdapter', function() {
       const accessToken = {id: 'def'};
       const options = {accessToken: accessToken};
       const auth = restAdapter._getInvocationAuth(options);
-      expect(auth).to.deep.equal(remotes.auth);
+      assert.deepStrictEqual(auth, remotes.auth);
     });
   });
 
@@ -573,7 +575,7 @@ describe('RestAdapter', function() {
 
     it('should find method by name', function() {
       const restMethod = restAdapter.getRestMethodByName(FULL_NAME);
-      expect(restMethod).to.have.property('fullName', FULL_NAME);
+      assert.strictEqual(restMethod.fullName, FULL_NAME);
     });
 
     it('should exclude methods disabled after the cache was built', function() {
@@ -582,8 +584,7 @@ describe('RestAdapter', function() {
 
       sharedClass.disableMethodByName(METHOD_NAME);
 
-      const restMethod = restAdapter.getRestMethodByName(FULL_NAME);
-      expect(restAdapter.getRestMethodByName(FULL_NAME)).to.equal(undefined);
+      assert.strictEqual(restAdapter.getRestMethodByName(FULL_NAME), undefined);
     });
 
     it('should find methods added after the cache was built', function() {
@@ -594,7 +595,7 @@ describe('RestAdapter', function() {
 
       const anotherFullName = SHARED_CLASS_NAME + '.anotherMethod';
       const restMethod = restAdapter.getRestMethodByName(anotherFullName);
-      expect(restMethod).to.have.property('fullName', anotherFullName);
+      assert.strictEqual(restMethod.fullName, anotherFullName);
     });
 
     function givenSharedClassWithStaticMethod() {
@@ -624,7 +625,7 @@ describe('RestAdapter', function() {
 
       const restAdapter = new RestAdapter(remotes);
       const allRoutes = restAdapter.allRoutes();
-      expect(allRoutes[0]).to.have.property('http');
+      assert('http' in allRoutes[0]);
     });
   });
 });

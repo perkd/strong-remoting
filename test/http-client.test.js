@@ -9,7 +9,6 @@
 const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
 
-const { expect } = require('./test-config'); // Use native expect interface
 const httpClient = require('../lib/http-client');
 const { HttpClient } = require('../lib/http-client');
 const express = require('express');
@@ -239,7 +238,7 @@ describe('HttpClient', function() {
     it('should handle promise rejection on network error', async function() {
       try {
         await httpClient('http://localhost:99999/nonexistent');
-        expect.fail('Should have thrown an error');
+        assert.fail('Should have thrown an error');
       } catch (err) {
         assert(err instanceof Error);
       }
