@@ -1,5 +1,6 @@
 {
   "name": "strong-remoting",
+  "version": "3.21.0",
   "description": "StrongLoop Remoting Module",
   "keywords": [
     "StrongLoop",
@@ -8,9 +9,8 @@
     "REST"
   ],
   "author": "IBM Corp.",
-  "version": "3.20.4",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "coverage": "node scripts/coverage-reporter.js",
@@ -20,17 +20,16 @@
     "coverage:json": "c8 report --reporter=json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "security:audit": "npm audit --audit-level=moderate",
-    "security:check": "npm audit --audit-level=high",
-    "test": "npm run test:unit && npm run test:e2e",
-    "test:unit": "c8 node --test --test-reporter=spec test/*.test.js test/rest-coercion/*.suite.js",
+    "security:audit": "yarn audit --audit-level=moderate",
+    "security:check": "yarn audit --audit-level=high",
+    "test": "yarn test:unit && yarn test:e2e",
+    "test:unit": "c8 node --test --test-force-exit --test-reporter=spec test/*.test.js test/rest-coercion/*.suite.js",
     "test:e2e": "node scripts/e2e-test-runner.js",
     "test:watch": "node scripts/test-runner.js --watch",
-    "test:security": "npm run security:audit && npm test",
+    "test:security": "yarn audit --audit-level=moderate && yarn test",
     "reinstall": "(rm -rf node_modules/ || true) && (rm yarn.lock || true) && yarn install"
   },
   "dependencies": {
-    "async": "^3.2.6",
     "axios": "^1.16.1",
     "better-sse": "^0.16.1",
     "body-parser": "^2.2.2",
@@ -39,7 +38,7 @@
     "eventemitter2": "^6.4.9",
     "express": "^5.2.1",
     "inflection": "^3.0.2",
-    "jayson": "4.1.2",
+    "jayson": "^4.3.0",
     "js2xmlparser": "4.0.2",
     "loopback-datatype-geopoint": "^1.0.0",
     "loopback-phase": "^3.4.0",
@@ -51,16 +50,14 @@
   },
   "devDependencies": {
     "c8": "^11.0.0",
-    "chai": "4.5.0",
     "eslint": "^10.4.0",
     "eslint-config-loopback": "^14.0.0",
     "event-stream": "^4.0.1",
     "eventsource": "1.1.2",
     "glob": "^13.0.6",
-    "http-auth": "3.2.4",
-    "mocha": "^11.7.5",
-    "socket.io": "^4.8.3",
-    "supertest": "^7.2.2"
+    "http-auth": "^4.2.1",
+    "http-auth-connect": "^1.0.6",
+    "socket.io": "^4.8.3"
   },
   "repository": {
     "type": "git",

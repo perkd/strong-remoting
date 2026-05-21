@@ -10,6 +10,7 @@ const { describe, it, before, after, beforeEach, afterEach } = require('node:tes
 const assert = require('node:assert');
 
 const auth = require('http-auth');
+const authConnect = require('http-auth-connect');
 const crypto = require('crypto');
 const express = require('express');
 const fmt = require('util').format;
@@ -44,8 +45,8 @@ describe('support for HTTP Authentication', function() {
       });
 
       app.use('/noAuth', remotes.handler('rest'));
-      app.use('/basicAuth', auth.connect(basic), remotes.handler('rest'));
-      app.use('/digestAuth', auth.connect(digest), remotes.handler('rest'));
+      app.use('/basicAuth', authConnect(basic), remotes.handler('rest'));
+      app.use('/digestAuth', authConnect(digest), remotes.handler('rest'));
       app.use('/bearerAuth', bearerMiddleware('bearertoken'), remotes.handler('rest'));
     } catch (error) {
       console.error('Auth setup failed:', error);
