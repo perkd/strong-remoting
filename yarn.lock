@@ -148,6 +148,39 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@perkd/strong-remoting@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@perkd/strong-remoting@workspace:."
+  dependencies:
+    axios: "npm:^1.16.1"
+    better-sse: "npm:^0.16.1"
+    body-parser: "npm:^2.2.2"
+    c8: "npm:^11.0.0"
+    debug: "npm:^4.4.3"
+    depd: "npm:^2.0.0"
+    eslint: "npm:^10.4.0"
+    eslint-config-loopback: "npm:^14.0.0"
+    event-stream: "npm:^4.0.1"
+    eventemitter2: "npm:^6.4.9"
+    eventsource: "npm:1.1.2"
+    express: "npm:^5.2.1"
+    glob: "npm:^13.0.6"
+    http-auth: "npm:^4.2.1"
+    http-auth-connect: "npm:^1.0.6"
+    inflection: "npm:^3.0.2"
+    jayson: "npm:^4.3.0"
+    js2xmlparser: "npm:4.0.2"
+    loopback-datatype-geopoint: "npm:^1.0.0"
+    loopback-phase: "npm:^3.4.0"
+    mux-demux: "npm:^3.7.9"
+    qs: "npm:^6.15.2"
+    socket.io: "npm:^4.8.3"
+    strong-error-handler: "npm:3.5.0"
+    strong-globalize: "npm:6.0.6"
+    traverse: "npm:^0.6.11"
+  languageName: unknown
+  linkType: soft
+
 "@socket.io/component-emitter@npm:~3.1.0":
   version: 3.1.2
   resolution: "@socket.io/component-emitter@npm:3.1.2"
@@ -3533,39 +3566,6 @@ __metadata:
   checksum: 10c0/2790f25e6e70791e5514492149b8c7e75cf32fda90b0aa06558615cdebfbfe9f8926f7585c7e7e71c070e3835ed585b70936c8c566dc17a81ce89f615cf552e8
   languageName: node
   linkType: hard
-
-"strong-remoting@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "strong-remoting@workspace:."
-  dependencies:
-    axios: "npm:^1.16.1"
-    better-sse: "npm:^0.16.1"
-    body-parser: "npm:^2.2.2"
-    c8: "npm:^11.0.0"
-    debug: "npm:^4.4.3"
-    depd: "npm:^2.0.0"
-    eslint: "npm:^10.4.0"
-    eslint-config-loopback: "npm:^14.0.0"
-    event-stream: "npm:^4.0.1"
-    eventemitter2: "npm:^6.4.9"
-    eventsource: "npm:1.1.2"
-    express: "npm:^5.2.1"
-    glob: "npm:^13.0.6"
-    http-auth: "npm:^4.2.1"
-    http-auth-connect: "npm:^1.0.6"
-    inflection: "npm:^3.0.2"
-    jayson: "npm:^4.3.0"
-    js2xmlparser: "npm:4.0.2"
-    loopback-datatype-geopoint: "npm:^1.0.0"
-    loopback-phase: "npm:^3.4.0"
-    mux-demux: "npm:^3.7.9"
-    qs: "npm:^6.15.2"
-    socket.io: "npm:^4.8.3"
-    strong-error-handler: "npm:3.5.0"
-    strong-globalize: "npm:6.0.6"
-    traverse: "npm:^0.6.11"
-  languageName: unknown
-  linkType: soft
 
 "supports-color@npm:^7.1.0":
   version: 7.2.0

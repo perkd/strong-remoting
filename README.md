@@ -1,3 +1,13 @@
+# @perkd/strong-remoting
+
+Formerly published as `strong-remoting` (StrongLoop fork).
+
+Published to GitHub Packages (`npm.pkg.github.com`). Consumers typically alias:
+
+```bash
+yarn add strong-remoting@npm:@perkd/strong-remoting@^4.0.0
+```
+
 # strong-remoting
 
 **⚠️ LoopBack 3 is in Maintenance LTS mode, only critical bugs and critical
