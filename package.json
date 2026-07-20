@@ -1,6 +1,6 @@
 {
   "name": "@perkd/strong-remoting",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "StrongLoop Remoting Module",
   "keywords": [
     "StrongLoop",
@@ -78,5 +78,13 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
     "access": "restricted"
-  }
+  },
+  "files": [
+    "README.md",
+    "LICENSE.md",
+    "index.js",
+    "lib",
+    "ext",
+    "intl"
+  ]
 }
