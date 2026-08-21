@@ -29,7 +29,7 @@ const config = {
   },
   reporters: ['text', 'html', 'lcov', 'json'],
   exclude: [
-    'test/**',
+    'tests/**',
     'coverage/**',
     'scripts/**',
     'node_modules/**',
@@ -157,7 +157,7 @@ async function runCoverageReporting(args) {
     'c8',
     ...reporterArgs,
     `--reports-dir=${args.outputDir}`,
-    '--exclude=test/**',
+    '--exclude=tests/**',
     '--exclude=coverage/**',
     '--exclude=scripts/**',
     '--exclude=node_modules/**',

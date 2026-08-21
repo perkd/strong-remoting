@@ -192,7 +192,7 @@ async function runTestsWithCoverage(testFiles, args) {
       '--reporter=text',
       '--reporter=html',
       '--reports-dir=' + config.coverageDir,
-      '--exclude=test/**',
+      '--exclude=tests/**',
       '--exclude=node_modules/**',
       'node',
       ...nodeArgs

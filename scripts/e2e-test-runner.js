@@ -20,7 +20,7 @@ const path = require('path');
 // Configuration
 const config = {
   serverPath: path.join(__dirname, '..', 'test', 'e2e', 'e2e-server.js'),
-  testPattern: 'test/e2e/**/*.test.js',
+  testPattern: 'tests/e2e/**/*.test.js',
   timeout: 10000,
   serverStartupTimeout: 10000,
   serverPort: 3000,
