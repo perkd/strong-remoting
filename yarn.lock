@@ -148,10 +148,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@perkd/release@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@perkd/release@npm:0.1.7::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40perkd%2Frelease%2F0.1.7%2F10579abc1f1f7466f12fc4d1ec0184a991fd4c19"
+  bin:
+    perkd-release: ./bin/perkd-release.mjs
+  checksum: 10c0/59e1ebe0d277b048a9bfc593a23a854973a4f408d7bf901985ce4194a0e31a9aed1e17f830317a84c561ff5353176ecd4ce9008fa1ce9d93cbb142f9788ea38e
+  languageName: node
+  linkType: hard
+
 "@perkd/strong-remoting@workspace:.":
   version: 0.0.0-use.local
   resolution: "@perkd/strong-remoting@workspace:."
   dependencies:
+    "@perkd/release": "npm:0.1.7"
     axios: "npm:^1.19.0"
     better-sse: "npm:^0.16.1"
     body-parser: "npm:^2.3.0"
