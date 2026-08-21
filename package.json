@@ -89,7 +89,7 @@
   ],
   "perkdRelease": {
     "test": {
-      "command": "yarn test:unit"
+      "command": "node --test --test-force-exit --test-reporter=spec tests/*.test.js tests/rest-coercion/*.suite.js"
     }
   }
 }
