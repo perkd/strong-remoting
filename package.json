@@ -10,7 +10,7 @@
   ],
   "author": "IBM Corp.",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "scripts": {
     "coverage": "node scripts/coverage-reporter.js",
